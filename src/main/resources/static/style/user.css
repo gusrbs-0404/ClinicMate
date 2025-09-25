@@ -1,0 +1,381 @@
+/* 사용자 관련 스타일 */
+
+/* 로그인/회원가입 컨테이너 */
+.signin-container,
+.signup-container {
+    max-width: 400px;
+    margin: 4rem auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    padding: 2.5rem;
+}
+
+.signin-container .logo,
+.signup-container .logo {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.signin-container .logo h1,
+.signup-container .logo h1 {
+    font-size: 2.5rem;
+    color: #007bff;
+    margin-bottom: 0.5rem;
+}
+
+.signin-container .logo p,
+.signup-container .logo p {
+    color: #6c757d;
+    font-size: 1rem;
+}
+
+/* 폼 스타일 */
+.signin-form,
+.signup-form {
+    margin-bottom: 1.5rem;
+}
+
+.signin-form h2,
+.signup-form h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #333;
+    font-size: 1.5rem;
+}
+
+/* 인증코드 발송 버튼 */
+#sendCodeBtn {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#sendCodeBtn:hover {
+    background-color: #218838;
+}
+
+#sendCodeBtn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* 링크 스타일 */
+.login-link,
+.signup-link {
+    text-align: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.login-link a,
+.signup-link a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.login-link a:hover,
+.signup-link a:hover {
+    text-decoration: underline;
+}
+
+/* 마이페이지 스타일 */
+.mypage-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.user-info-section,
+.reservation-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.user-info-section h2,
+.reservation-section h2 {
+    color: #333;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 0.5rem;
+}
+
+/* 사용자 정보 카드 */
+.user-info-card {
+    display: grid;
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border-left: 4px solid #007bff;
+}
+
+.info-item label {
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+}
+
+.info-item span {
+    color: #333;
+    font-weight: 500;
+}
+
+/* 예약 내역 */
+.reservation-list {
+    min-height: 200px;
+}
+
+.reservation-item {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #007bff;
+    transition: transform 0.2s ease;
+}
+
+.reservation-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.reservation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.reservation-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-confirmed {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.reservation-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.detail-value {
+    font-weight: 500;
+    color: #333;
+}
+
+.no-data {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+}
+
+/* 회원정보 수정 페이지 */
+.edit-profile-container,
+.withdraw-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 2rem;
+}
+
+.edit-profile-container h2,
+.withdraw-container h2 {
+    color: #333;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+    text-align: center;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 0.5rem;
+}
+
+/* 탈퇴 페이지 경고 박스 */
+.warning-box {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.warning-box h3 {
+    color: #856404;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.warning-box ul {
+    list-style: none;
+    padding: 0;
+}
+
+.warning-box li {
+    color: #856404;
+    margin-bottom: 0.5rem;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.warning-box li:before {
+    content: "•";
+    color: #856404;
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+}
+
+/* 폼 그룹 특별 스타일 */
+.edit-form .form-group,
+.withdraw-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .signin-container,
+    .signup-container {
+        margin: 2rem auto;
+        padding: 1.5rem;
+    }
+    
+    .mypage-container {
+        padding: 0 1rem;
+    }
+    
+    .user-info-section,
+    .reservation-section {
+        padding: 1.5rem;
+    }
+    
+    .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .reservation-details {
+        grid-template-columns: 1fr;
+    }
+    
+    .reservation-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .edit-profile-container,
+    .withdraw-container {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .signin-container,
+    .signup-container {
+        margin: 1rem auto;
+        padding: 1rem;
+    }
+    
+    .signin-container .logo h1,
+    .signup-container .logo h1 {
+        font-size: 2rem;
+    }
+    
+    .user-info-section,
+    .reservation-section {
+        padding: 1rem;
+    }
+    
+    .edit-profile-container,
+    .withdraw-container {
+        padding: 1rem;
+    }
+}
+
+/* 로딩 스피너 */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 성공/에러 메시지 */
+.message {
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.message.info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
