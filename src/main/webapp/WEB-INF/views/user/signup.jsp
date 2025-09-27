@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -9,6 +10,7 @@
     <link rel="stylesheet" href="/style/user.css">
 </head>
 <body>
+    <c:import url="/WEB-INF/views/module/header.jsp" />
     <div class="container">
         <div class="signup-container">
             <div class="logo">
@@ -66,6 +68,7 @@
     
     <script src="/script/common.js"></script>
     <script src="/script/user.js"></script>
+    <c:import url="/WEB-INF/views/module/footer.jsp" />
 </body>
 </html>
 

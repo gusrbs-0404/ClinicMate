@@ -1,4 +1,6 @@
-/* 공통 스타일 */
+/* 공통 스타일 - Color Hunt 팔레트 적용 */
+/* 팔레트: #134686 (네이비), #ed3f27 (레드), #feb21a (오렌지), #fdf4e3 (크림) */
+
 * {
     margin: 0;
     padding: 0;
@@ -8,8 +10,8 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
-    color: #333;
-    background-color: #f8f9fa;
+    color: #134686;
+    background-color: #fdf4e3;
 }
 
 .container {
@@ -21,30 +23,49 @@ body {
 /* 헤더 스타일 */
 .header {
     background: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(19, 70, 134, 0.1);
     padding: 1rem 0;
     margin-bottom: 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
-.header .container {
+.header-container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    min-height: 80px;
+}
+
+.logo-link {
+    text-decoration: none;
+    color: inherit;
 }
 
 .logo h1 {
-    color: #007bff;
+    color: #134686;
     font-size: 1.8rem;
     font-weight: 700;
+    margin-bottom: 0;
 }
 
-.logo p {
-    color: #6c757d;
+.logo-subtitle {
+    color: #ed3f27;
     font-size: 0.9rem;
-    margin-top: -5px;
+    font-weight: 500;
 }
 
-.nav {
+.auth-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.auth-menu {
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -52,17 +73,35 @@ body {
 
 .nav-link {
     text-decoration: none;
-    color: #333;
+    color: #134686;
     font-weight: 500;
     padding: 0.5rem 1rem;
-    border-radius: 4px;
+    border-radius: 6px;
     transition: all 0.3s ease;
 }
 
 .nav-link:hover {
-    background-color: #f8f9fa;
-    color: #007bff;
+    background-color: #fdf4e3;
+    color: #ed3f27;
 }
+
+.auth-section .btn {
+    background-color: #ed3f27;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.auth-section .btn:hover {
+    background-color: #c7321f;
+    transform: translateY(-1px);
+}
+
 
 /* 버튼 스타일 */
 .btn {
@@ -79,12 +118,12 @@ body {
 }
 
 .btn-primary {
-    background-color: #007bff;
+    background-color: #134686;
     color: white;
 }
 
 .btn-primary:hover {
-    background-color: #0056b3;
+    background-color: #0f3568;
     transform: translateY(-1px);
 }
 
@@ -99,12 +138,12 @@ body {
 }
 
 .btn-danger {
-    background-color: #dc3545;
+    background-color: #ed3f27;
     color: white;
 }
 
 .btn-danger:hover {
-    background-color: #c82333;
+    background-color: #c7321f;
     transform: translateY(-1px);
 }
 
@@ -123,7 +162,7 @@ body {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
-    color: #333;
+    color: #134686;
 }
 
 .form-group input,
@@ -135,18 +174,19 @@ body {
     border-radius: 6px;
     font-size: 1rem;
     transition: border-color 0.3s ease;
+    background-color: #fff;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    border-color: #134686;
+    box-shadow: 0 0 0 3px rgba(19, 70, 134, 0.1);
 }
 
 .error-message {
-    color: #dc3545;
+    color: #ed3f27;
     font-size: 0.875rem;
     margin-top: 0.25rem;
     display: none;
@@ -166,18 +206,20 @@ body {
     align-items: center;
     cursor: pointer;
     font-size: 0.9rem;
+    color: #134686;
 }
 
 .checkbox-label input[type="checkbox"] {
     width: auto;
     margin-right: 0.5rem;
+    accent-color: #134686;
 }
 
 /* 카드 스타일 */
 .card {
     background: white;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(19, 70, 134, 0.1);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
 }
@@ -193,20 +235,112 @@ body {
     flex: 1;
 }
 
+/* 푸터 스타일 */
+.footer {
+    background-color: #134686;
+    color: #fdf4e3;
+    margin-top: 4rem;
+    padding: 3rem 0 1rem;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.footer-section h3 {
+    color: #feb21a;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.footer-section h4 {
+    color: #feb21a;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.footer-section p {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+.footer-section ul {
+    list-style: none;
+}
+
+.footer-section ul li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-section ul li a {
+    color: #fdf4e3;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-section ul li a:hover {
+    color: #feb21a;
+}
+
+.contact-info p {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(253, 244, 227, 0.2);
+    padding-top: 1rem;
+}
+
+.footer-bottom-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.social-links {
+    display: flex;
+    gap: 1rem;
+}
+
+.social-link {
+    color: #fdf4e3;
+    font-size: 1.2rem;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.social-link:hover {
+    color: #feb21a;
+}
+
 /* 반응형 디자인 */
 @media (max-width: 768px) {
     .container {
         padding: 0 15px;
     }
     
-    .header .container {
+    .header-container {
+        padding: 0 15px;
         flex-direction: column;
         gap: 1rem;
+        min-height: auto;
     }
     
-    .nav {
+    .auth-section {
         flex-wrap: wrap;
         justify-content: center;
+        gap: 0.5rem;
     }
     
     .button-group {
@@ -215,6 +349,27 @@ body {
     
     .logo h1 {
         font-size: 1.5rem;
+    }
+    
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .footer-bottom-content {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo h1 {
+        font-size: 1.3rem;
+    }
+    
+    .logo-subtitle {
+        font-size: 0.8rem;
     }
 }
 

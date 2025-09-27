@@ -362,6 +362,11 @@ const SigninHandler = {
             };
             Utils.setCurrentUser(userData);
             
+            // 헤더 메뉴 업데이트
+            if (typeof updateHeaderMenu === 'function') {
+                updateHeaderMenu();
+            }
+            
             Utils.showSuccess('로그인되었습니다. 메인 페이지로 이동합니다.');
             
             setTimeout(() => {

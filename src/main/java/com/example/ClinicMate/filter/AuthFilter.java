@@ -20,7 +20,7 @@ public class AuthFilter implements Filter {
             "/script",
             "/style",
             "/img",
-            "/imges" // 현재 정적 폴더명 반영
+            "/imges"
     );
 
     private final List<String> publicUrls = List.of(
@@ -36,7 +36,8 @@ public class AuthFilter implements Filter {
     );
 
     private final List<String> publicPrefixes = List.of(
-            "/users/action"
+            "/users/action",
+            "/preview"
     );
 
     @Override

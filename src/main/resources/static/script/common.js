@@ -148,9 +148,6 @@ const Utils = {
 
     // 로컬 스토리지에서 사용자 정보 가져오기
     getCurrentUser: function() {
-        const userStr = localStorage.getItem('currentUser');
-        if (userStr) return JSON.parse(userStr);
-
         // 프리뷰 경로에서는 더미 사용자로 동작
         const path = window.location && window.location.pathname ? window.location.pathname : '';
         if (path.startsWith('/preview')) {
@@ -161,6 +158,11 @@ const Utils = {
                 role: 'patient'
             };
         }
+        
+        // 실제 로그인 상태 확인
+        const userStr = localStorage.getItem('currentUser');
+        if (userStr) return JSON.parse(userStr);
+        
         return null;
     },
 
