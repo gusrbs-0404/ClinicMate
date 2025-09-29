@@ -17,20 +17,38 @@
             <div class="withdraw-container">
                 <h2>회원 탈퇴</h2>
                 
+                <c:if test="${not empty user}">
+                    <div class="user-info-box">
+                        <h3>탈퇴할 계정 정보</h3>
+                        <div class="info-item">
+                            <label>아이디:</label>
+                            <span>${user.username}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>이름:</label>
+                            <span>${user.name}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>이메일:</label>
+                            <span>${user.email}</span>
+                        </div>
+                    </div>
+                </c:if>
+                
                 <div class="warning-box">
                     <h3>⚠️ 탈퇴 안내</h3>
                     <ul>
-                        <li>탈퇴 신청 후 관리자 승인이 필요합니다.</li>
-                        <li>탈퇴 승인 시 모든 개인정보가 삭제됩니다.</li>
+                        <li>탈퇴 시 모든 개인정보가 즉시 삭제됩니다.</li>
                         <li>진행 중인 예약이 있는 경우 탈퇴가 제한될 수 있습니다.</li>
                         <li>탈퇴 후 동일한 아이디로 재가입이 불가능합니다.</li>
+                        <li>탈퇴는 되돌릴 수 없으니 신중히 결정해주세요.</li>
                     </ul>
                 </div>
                 
                 <form id="withdrawForm" class="withdraw-form" action="/users/action/withdraw" method="POST">
                     <div class="form-group">
-                        <label for="password">비밀번호 확인</label>
-                        <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
+                        <label for="password">비밀번호 확인 <span class="required">*</span></label>
+                        <input type="password" id="password" name="password" placeholder="현재 비밀번호를 입력하세요" required>
                         <div class="error-message" id="passwordError"></div>
                     </div>
                     
@@ -61,7 +79,7 @@
                     </div>
                     
                     <div class="button-group">
-                        <button type="submit" class="btn btn-danger">탈퇴 신청</button>
+                        <button type="submit" class="btn btn-danger">회원 탈퇴</button>
                         <button type="button" class="btn btn-secondary" onclick="goBack()">취소</button>
                     </div>
                 </form>

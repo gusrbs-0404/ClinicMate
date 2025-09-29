@@ -61,7 +61,7 @@ const SignupHandler = {
         }
 
         if (!Utils.validateUsername(username)) {
-            Utils.showError('usernameError', '6-20자 영문, 숫자, 특수문자(-, _) 조합으로 입력해주세요.');
+            Utils.showError('usernameError', '6-20자 영문, 숫자 조합으로 입력해주세요.');
             return false;
         }
 
@@ -249,23 +249,29 @@ const SignupHandler = {
         Utils.showLoading(submitBtn);
 
         try {
-            // 실제 구현에서는 서버 API 호출
-            // const response = await Utils.apiCall('/users/action/signup', {
-            //     method: 'POST',
-            //     body: JSON.stringify(userData)
-            // });
+            // 실제 서버 API 호출
+            const response = await fetch('/users/action/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(userData)
+            });
 
-            // 임시로 성공 처리
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            Utils.showSuccess('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
-            
-            setTimeout(() => {
-                window.location.href = '/users/signin';
-            }, 2000);
+            const result = await response.json();
+
+            if (result.success) {
+                Utils.showSuccess('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
+                
+                setTimeout(() => {
+                    window.location.href = '/users/signin';
+                }, 2000);
+            } else {
+                Utils.showErrorMessage(result.message || '회원가입 중 오류가 발생했습니다.');
+            }
 
         } catch (error) {
-            Utils.showErrorMessage(error.message || '회원가입 중 오류가 발생했습니다.');
+            Utils.showErrorMessage('회원가입 중 오류가 발생했습니다.');
         } finally {
             Utils.hideLoading(submitBtn);
         }
@@ -344,37 +350,37 @@ const SigninHandler = {
         Utils.showLoading(submitBtn);
 
         try {
-            // 실제 구현에서는 서버 API 호출
-            // const response = await Utils.apiCall('/users/action/signin', {
-            //     method: 'POST',
-            //     body: JSON.stringify(loginData)
-            // });
+            // 실제 서버 API 호출
+            const response = await fetch('/users/action/signin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(loginData)
+            });
 
-            // 임시로 성공 처리
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // 사용자 정보 저장 (실제로는 서버에서 받은 데이터)
-            const userData = {
-                username: loginData.username,
-                name: '홍길동', // 임시 데이터
-                email: 'test@example.com',
-                role: 'patient'
-            };
-            Utils.setCurrentUser(userData);
-            
-            // 헤더 메뉴 업데이트
-            if (typeof updateHeaderMenu === 'function') {
-                updateHeaderMenu();
+            const result = await response.json();
+
+            if (result.success) {
+                // 사용자 정보 저장 (서버에서 받은 데이터)
+                Utils.setCurrentUser(result.user);
+                
+                // 헤더 메뉴 업데이트
+                if (typeof updateHeaderMenu === 'function') {
+                    updateHeaderMenu();
+                }
+                
+                Utils.showSuccess('로그인되었습니다. 마이페이지로 이동합니다.');
+                
+                setTimeout(() => {
+                    window.location.href = '/users/me';
+                }, 1500);
+            } else {
+                Utils.showErrorMessage(result.message || '로그인 중 오류가 발생했습니다.');
             }
-            
-            Utils.showSuccess('로그인되었습니다. 메인 페이지로 이동합니다.');
-            
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 1500);
 
         } catch (error) {
-            Utils.showErrorMessage(error.message || '로그인 중 오류가 발생했습니다.');
+            Utils.showErrorMessage('로그인 중 오류가 발생했습니다.');
         } finally {
             Utils.hideLoading(submitBtn);
         }
@@ -384,9 +390,13 @@ const SigninHandler = {
 // 마이페이지 관련 함수들
 const MyPageHandler = {
     // 페이지 초기화
-    init: function() {
-        this.loadUserInfo();
-        this.loadReservations();
+    init: async function() {
+        try {
+            await this.loadUserInfo();
+            await this.loadReservations();
+        } catch (error) {
+            console.error('마이페이지 초기화 오류:', error);
+        }
     },
 
     // 사용자 정보 로드
@@ -398,27 +408,13 @@ const MyPageHandler = {
                 return;
             }
 
-            // 실제 구현에서는 서버 API 호출
-            // const response = await Utils.apiCall('/users/me');
-            // const userInfo = response.data;
-
-            // 임시 데이터
-            const userInfo = {
-                username: currentUser.username,
-                name: currentUser.name,
-                email: currentUser.email,
-                phone: '010-1234-5678',
-                createdAt: '2024-01-01'
-            };
-
-            // 사용자 정보 표시
-            document.getElementById('userUsername').textContent = userInfo.username;
-            document.getElementById('userName').textContent = userInfo.name;
-            document.getElementById('userEmail').textContent = userInfo.email;
-            document.getElementById('userPhone').textContent = userInfo.phone;
-            document.getElementById('userCreatedAt').textContent = userInfo.createdAt;
+            // 서버에서 전달받은 사용자 정보가 이미 JSP에 포함되어 있으므로
+            // JavaScript로 DOM 요소를 업데이트할 필요가 없음
+            // JSP에서 JSTL을 통해 사용자 정보가 이미 표시됨
+            console.log('마이페이지 사용자 정보 로드 완료');
 
         } catch (error) {
+            console.error('사용자 정보 로드 오류:', error);
             Utils.showErrorMessage('사용자 정보를 불러오는 중 오류가 발생했습니다.');
         }
     },
@@ -429,33 +425,13 @@ const MyPageHandler = {
             const currentUser = Utils.getCurrentUser();
             if (!currentUser) return;
 
-            // 실제 구현에서는 서버 API 호출
-            // const response = await Utils.apiCall(`/reservations/user/${currentUser.userId}`);
-            // const reservations = response.data;
-
-            // 임시 데이터
-            const reservations = [
-                {
-                    resId: 1,
-                    hospitalName: '서울대병원',
-                    deptName: '내과',
-                    doctorName: '김의사',
-                    resDate: '2024-01-15 14:00',
-                    status: 'confirmed'
-                },
-                {
-                    resId: 2,
-                    hospitalName: '삼성서울병원',
-                    deptName: '외과',
-                    doctorName: '이의사',
-                    resDate: '2024-01-20 10:30',
-                    status: 'pending'
-                }
-            ];
-
+            // 현재는 예약 기능이 구현되지 않았으므로 빈 배열로 처리
+            const reservations = [];
             this.displayReservations(reservations);
+            console.log('예약 내역 로드 완료 (현재 예약 없음)');
 
         } catch (error) {
+            console.error('예약 내역 로드 오류:', error);
             Utils.showErrorMessage('예약 내역을 불러오는 중 오류가 발생했습니다.');
         }
     },
@@ -464,7 +440,12 @@ const MyPageHandler = {
     displayReservations(reservations) {
         const container = document.getElementById('reservationList');
         
-        if (reservations.length === 0) {
+        if (!container) {
+            console.log('예약 내역 컨테이너를 찾을 수 없습니다.');
+            return;
+        }
+        
+        if (!reservations || reservations.length === 0) {
             container.innerHTML = '<div class="no-data"><p>예약 내역이 없습니다.</p></div>';
             return;
         }
@@ -515,8 +496,174 @@ const EditProfileHandler = {
         const form = document.getElementById('editProfileForm');
         if (form) {
             form.addEventListener('submit', this.handleSubmit.bind(this));
+            this.setupValidation();
         }
         this.loadUserInfo();
+    },
+
+    // 실시간 유효성 검사 설정
+    setupValidation: function() {
+        const currentPasswordInput = document.getElementById('currentPassword');
+        const newPasswordInput = document.getElementById('newPassword');
+        const confirmNewPasswordInput = document.getElementById('confirmNewPassword');
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const phoneInput = document.getElementById('phone');
+
+        if (currentPasswordInput) {
+            currentPasswordInput.addEventListener('blur', () => this.validateCurrentPassword());
+            currentPasswordInput.addEventListener('input', () => Utils.hideError('currentPasswordError'));
+        }
+
+        if (newPasswordInput) {
+            newPasswordInput.addEventListener('blur', () => this.validateNewPassword());
+            newPasswordInput.addEventListener('input', () => Utils.hideError('newPasswordError'));
+        }
+
+        if (confirmNewPasswordInput) {
+            confirmNewPasswordInput.addEventListener('blur', () => this.validateConfirmNewPassword());
+            confirmNewPasswordInput.addEventListener('input', () => Utils.hideError('confirmNewPasswordError'));
+        }
+
+        if (nameInput) {
+            nameInput.addEventListener('blur', () => this.validateName());
+            nameInput.addEventListener('input', () => Utils.hideError('nameError'));
+        }
+
+        if (emailInput) {
+            emailInput.addEventListener('blur', () => this.validateEmail());
+            emailInput.addEventListener('input', () => Utils.hideError('emailError'));
+        }
+
+        if (phoneInput) {
+            phoneInput.addEventListener('blur', () => this.validatePhone());
+            phoneInput.addEventListener('input', () => Utils.hideError('phoneError'));
+        }
+    },
+
+            // 현재 비밀번호 유효성 검사
+            validateCurrentPassword: function() {
+                const currentPassword = document.getElementById('currentPassword').value;
+                
+                // 현재 비밀번호는 항상 필수
+                if (!currentPassword || currentPassword.trim() === '') {
+                    Utils.showError('currentPasswordError', '현재 비밀번호를 입력해주세요.');
+                    return false;
+                }
+
+                Utils.hideError('currentPasswordError');
+                return true;
+            },
+
+    // 새 비밀번호 유효성 검사
+    validateNewPassword: function() {
+        const newPassword = document.getElementById('newPassword').value;
+        
+        // 비밀번호가 입력되지 않았으면 통과 (선택사항)
+        if (!newPassword || newPassword.trim() === '') {
+            Utils.hideError('newPasswordError');
+            return true;
+        }
+
+        if (!Utils.validatePassword(newPassword)) {
+            Utils.showError('newPasswordError', '영문, 숫자, 특수문자(!@#$%^&*)를 포함하여 8자 이상 입력해주세요.');
+            return false;
+        }
+
+        Utils.hideError('newPasswordError');
+        return true;
+    },
+
+    // 새 비밀번호 확인 검사
+    validateConfirmNewPassword: function() {
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+        
+        // 새 비밀번호가 입력되지 않았으면 통과
+        if (!newPassword || newPassword.trim() === '') {
+            Utils.hideError('confirmNewPasswordError');
+            return true;
+        }
+
+        if (!Utils.validateNotBlank(confirmNewPassword)) {
+            Utils.showError('confirmNewPasswordError', '새 비밀번호 확인을 입력해주세요.');
+            return false;
+        }
+
+        if (newPassword !== confirmNewPassword) {
+            Utils.showError('confirmNewPasswordError', '새 비밀번호가 일치하지 않습니다.');
+            return false;
+        }
+
+        Utils.hideError('confirmNewPasswordError');
+        return true;
+    },
+
+    // 이름 유효성 검사
+    validateName: function() {
+        const name = document.getElementById('name').value.trim();
+        
+        if (!Utils.validateNotBlank(name)) {
+            Utils.showError('nameError', '이름을 입력해주세요.');
+            return false;
+        }
+
+        if (!Utils.validateName(name)) {
+            Utils.showError('nameError', '한글 2-5자로 입력해주세요.');
+            return false;
+        }
+
+        Utils.hideError('nameError');
+        return true;
+    },
+
+    // 이메일 유효성 검사
+    validateEmail: function() {
+        const email = document.getElementById('email').value.trim();
+        
+        if (!Utils.validateNotBlank(email)) {
+            Utils.showError('emailError', '이메일을 입력해주세요.');
+            return false;
+        }
+
+        if (!Utils.validateEmail(email)) {
+            Utils.showError('emailError', '올바른 이메일 형식을 입력해주세요.');
+            return false;
+        }
+
+        Utils.hideError('emailError');
+        return true;
+    },
+
+    // 전화번호 유효성 검사
+    validatePhone: function() {
+        const phone = document.getElementById('phone').value.trim();
+        
+        if (!Utils.validateNotBlank(phone)) {
+            Utils.showError('phoneError', '전화번호를 입력해주세요.');
+            return false;
+        }
+
+        if (!Utils.validatePhone(phone)) {
+            Utils.showError('phoneError', '010-1234-5678 형식으로 입력해주세요.');
+            return false;
+        }
+
+        Utils.hideError('phoneError');
+        return true;
+    },
+
+    // 전체 폼 유효성 검사
+    validateForm: function() {
+        const isValid = 
+            this.validateCurrentPassword() &&
+            this.validateNewPassword() &&
+            this.validateConfirmNewPassword() &&
+            this.validateName() &&
+            this.validateEmail() &&
+            this.validatePhone();
+
+        return isValid;
     },
 
     // 사용자 정보 로드
@@ -528,23 +675,13 @@ const EditProfileHandler = {
                 return;
             }
 
-            // 실제 구현에서는 서버 API 호출
-            // const response = await Utils.apiCall('/users/me');
-            // const userInfo = response.data;
-
-            // 임시 데이터
-            const userInfo = {
-                name: currentUser.name,
-                email: currentUser.email,
-                phone: '010-1234-5678'
-            };
-
-            // 폼에 데이터 설정
-            document.getElementById('name').value = userInfo.name;
-            document.getElementById('email').value = userInfo.email;
-            document.getElementById('phone').value = userInfo.phone;
+            // 서버에서 전달받은 사용자 정보가 이미 JSP에 포함되어 있으므로
+            // JavaScript로 DOM 요소를 업데이트할 필요가 없음
+            // JSP에서 JSTL을 통해 사용자 정보가 이미 표시됨
+            console.log('정보 수정 페이지 사용자 정보 로드 완료');
 
         } catch (error) {
+            console.error('사용자 정보 로드 오류:', error);
             Utils.showErrorMessage('사용자 정보를 불러오는 중 오류가 발생했습니다.');
         }
     },
@@ -553,6 +690,11 @@ const EditProfileHandler = {
     async handleSubmit(event) {
         event.preventDefault();
 
+        if (!this.validateForm()) {
+            Utils.showErrorMessage('입력 정보를 확인해주세요.');
+            return;
+        }
+
         const formData = new FormData(event.target);
         const updateData = Object.fromEntries(formData.entries());
 
@@ -560,23 +702,29 @@ const EditProfileHandler = {
         Utils.showLoading(submitBtn);
 
         try {
-            // 실제 구현에서는 서버 API 호출
-            // const response = await Utils.apiCall('/users/action/edit', {
-            //     method: 'PUT',
-            //     body: JSON.stringify(updateData)
-            // });
+            // 실제 서버 API 호출
+            const response = await fetch('/users/action/edit', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(updateData)
+            });
 
-            // 임시로 성공 처리
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            Utils.showSuccess('회원정보가 수정되었습니다.');
-            
-            setTimeout(() => {
-                window.location.href = '/users/me';
-            }, 1500);
+            const result = await response.json();
+
+            if (result.success) {
+                Utils.showSuccess('회원정보가 수정되었습니다.');
+                
+                setTimeout(() => {
+                    window.location.href = '/users/me';
+                }, 1500);
+            } else {
+                Utils.showErrorMessage(result.message || '회원정보 수정 중 오류가 발생했습니다.');
+            }
 
         } catch (error) {
-            Utils.showErrorMessage(error.message || '회원정보 수정 중 오류가 발생했습니다.');
+            Utils.showErrorMessage('회원정보 수정 중 오류가 발생했습니다.');
         } finally {
             Utils.hideLoading(submitBtn);
         }
@@ -590,12 +738,92 @@ const WithdrawHandler = {
         const form = document.getElementById('withdrawForm');
         if (form) {
             form.addEventListener('submit', this.handleSubmit.bind(this));
+            this.setupValidation();
         }
+    },
+
+    // 실시간 유효성 검사 설정
+    setupValidation: function() {
+        const passwordInput = document.getElementById('password');
+        const reasonSelect = document.getElementById('reason');
+        const agreeCheckbox = document.getElementById('agreeWithdraw');
+
+        if (passwordInput) {
+            passwordInput.addEventListener('blur', () => this.validatePassword());
+            passwordInput.addEventListener('input', () => Utils.hideError('passwordError'));
+        }
+
+        if (reasonSelect) {
+            reasonSelect.addEventListener('change', () => this.validateReason());
+        }
+
+        if (agreeCheckbox) {
+            agreeCheckbox.addEventListener('change', () => this.validateAgreement());
+        }
+    },
+
+    // 비밀번호 유효성 검사
+    validatePassword: function() {
+        const password = document.getElementById('password').value;
+        
+        if (!Utils.validateNotBlank(password)) {
+            Utils.showError('passwordError', '비밀번호를 입력해주세요.');
+            return false;
+        }
+
+        Utils.hideError('passwordError');
+        return true;
+    },
+
+    // 탈퇴 사유 유효성 검사
+    validateReason: function() {
+        const reason = document.getElementById('reason').value;
+        
+        if (!reason || reason.trim() === '') {
+            Utils.showError('reasonError', '탈퇴 사유를 선택해주세요.');
+            return false;
+        }
+
+        Utils.hideError('reasonError');
+        return true;
+    },
+
+    // 동의 체크박스 유효성 검사
+    validateAgreement: function() {
+        const agreeCheckbox = document.getElementById('agreeWithdraw');
+        
+        if (!agreeCheckbox.checked) {
+            Utils.showError('agreementError', '탈퇴 동의에 체크해주세요.');
+            return false;
+        }
+
+        Utils.hideError('agreementError');
+        return true;
+    },
+
+    // 전체 폼 유효성 검사
+    validateForm: function() {
+        const isValid = 
+            this.validatePassword() &&
+            this.validateReason() &&
+            this.validateAgreement();
+
+        return isValid;
     },
 
     // 탈퇴 신청 처리
     async handleSubmit(event) {
         event.preventDefault();
+
+        if (!this.validateForm()) {
+            Utils.showErrorMessage('입력 정보를 확인해주세요.');
+            return;
+        }
+
+        // 최종 확인
+        if (!confirm('정말로 회원 탈퇴를 진행하시겠습니까?\n탈퇴 후에는 되돌릴 수 없습니다.')) {
+            return;
+        }
 
         const formData = new FormData(event.target);
         const withdrawData = Object.fromEntries(formData.entries());
@@ -604,24 +832,30 @@ const WithdrawHandler = {
         Utils.showLoading(submitBtn);
 
         try {
-            // 실제 구현에서는 서버 API 호출
-            // const response = await Utils.apiCall('/users/action/withdraw', {
-            //     method: 'POST',
-            //     body: JSON.stringify(withdrawData)
-            // });
+            // 실제 서버 API 호출
+            const response = await fetch('/users/action/withdraw', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(withdrawData)
+            });
 
-            // 임시로 성공 처리
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            Utils.showSuccess('탈퇴 신청이 완료되었습니다. 관리자 승인 후 처리됩니다.');
-            
-            setTimeout(() => {
-                Utils.removeCurrentUser();
-                window.location.href = '/';
-            }, 2000);
+            const result = await response.json();
+
+            if (result.success) {
+                Utils.showSuccess('회원 탈퇴가 완료되었습니다.');
+                
+                setTimeout(() => {
+                    Utils.removeCurrentUser();
+                    window.location.href = '/';
+                }, 2000);
+            } else {
+                Utils.showErrorMessage(result.message || '회원 탈퇴 중 오류가 발생했습니다.');
+            }
 
         } catch (error) {
-            Utils.showErrorMessage(error.message || '탈퇴 신청 중 오류가 발생했습니다.');
+            Utils.showErrorMessage('회원 탈퇴 중 오류가 발생했습니다.');
         } finally {
             Utils.hideLoading(submitBtn);
         }

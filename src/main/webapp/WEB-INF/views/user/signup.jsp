@@ -23,7 +23,7 @@
                 
                 <div class="form-group">
                     <label for="username">아이디</label>
-                    <input type="text" id="username" name="username" placeholder="6-20자 영문, 숫자, 특수문자(-, _) 조합" required>
+                    <input type="text" id="username" name="username" placeholder="6-20자 영문, 숫자 조합" required>
                     <div class="error-message" id="usernameError"></div>
                 </div>
                 

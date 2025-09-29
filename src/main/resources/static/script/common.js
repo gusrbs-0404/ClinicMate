@@ -14,16 +14,25 @@ const Utils = {
         return phoneRegex.test(phone);
     },
 
-    // 아이디 유효성 검사
+    // 아이디 유효성 검사 (영문, 숫자만)
     validateUsername: function(username) {
-        const usernameRegex = /^[a-zA-Z0-9-_]{6,20}$/;
+        const usernameRegex = /^[a-zA-Z0-9]{6,20}$/;
         return usernameRegex.test(username);
     },
 
-    // 비밀번호 유효성 검사
+    // 비밀번호 유효성 검사 (영문, 숫자, 특수문자 조합 8자 이상)
     validatePassword: function(password) {
-        const passwordRegex = /^[A-Za-z0-9]*[!@#$%^&*][A-Za-z0-9]*$/;
-        return passwordRegex.test(password) && password.length >= 8;
+        // 8자 이상
+        if (password.length < 8) {
+            return false;
+        }
+        
+        // 영문, 숫자, 특수문자(!@#$%^&*) 조합 확인
+        const hasLetter = /[a-zA-Z]/.test(password);
+        const hasNumber = /[0-9]/.test(password);
+        const hasSpecial = /[!@#$%^&*]/.test(password);
+        
+        return hasLetter && hasNumber && hasSpecial;
     },
 
     // 이름 유효성 검사
@@ -159,9 +168,30 @@ const Utils = {
             };
         }
         
-        // 실제 로그인 상태 확인
+        // 로그인/회원가입 페이지에서는 항상 null 반환
+        if (path === '/users/signin' || path === '/users/signup') {
+            return null;
+        }
+        
+        // 실제 로그인 상태 확인 - localStorage에서 사용자 정보 가져오기
         const userStr = localStorage.getItem('currentUser');
-        if (userStr) return JSON.parse(userStr);
+        if (userStr && userStr.trim() !== '') {
+            try {
+                const user = JSON.parse(userStr);
+                // 유효한 사용자 객체인지 확인
+                if (user && user.username && user.username !== 'previewUser' && user.userId) {
+                    return user;
+                } else {
+                    // 유효하지 않은 사용자 정보면 제거
+                    localStorage.removeItem('currentUser');
+                    return null;
+                }
+            } catch (e) {
+                // 잘못된 JSON 형식이면 제거
+                localStorage.removeItem('currentUser');
+                return null;
+            }
+        }
         
         return null;
     },

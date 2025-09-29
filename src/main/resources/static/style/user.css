@@ -1,5 +1,11 @@
 /* 사용자 관련 스타일 */
 
+/* 필수 표시 스타일 */
+.required {
+    color: #ed3f27;
+    font-weight: bold;
+}
+
 /* 로그인/회원가입 컨테이너 */
 .signin-container,
 .signup-container {

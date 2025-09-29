@@ -20,14 +20,14 @@
                 <form id="editProfileForm" class="edit-form" action="/users/action/edit" method="POST">
                     <input type="hidden" name="_method" value="PUT" />
                     <div class="form-group">
-                        <label for="currentPassword">현재 비밀번호</label>
+                        <label for="currentPassword">현재 비밀번호 <span class="required">*</span></label>
                         <input type="password" id="currentPassword" name="currentPassword" placeholder="현재 비밀번호를 입력하세요" required>
                         <div class="error-message" id="currentPasswordError"></div>
                     </div>
                     
                     <div class="form-group">
                         <label for="newPassword">새 비밀번호</label>
-                        <input type="password" id="newPassword" name="newPassword" placeholder="새 비밀번호를 입력하세요">
+                        <input type="password" id="newPassword" name="password" placeholder="새 비밀번호를 입력하세요">
                         <div class="error-message" id="newPasswordError"></div>
                     </div>
                     
@@ -39,19 +39,19 @@
                     
                     <div class="form-group">
                         <label for="name">이름</label>
-                        <input type="text" id="name" name="name" placeholder="한글 2-5자" required>
+                        <input type="text" id="name" name="name" placeholder="한글 2-5자" value="${user.name}" required>
                         <div class="error-message" id="nameError"></div>
                     </div>
                     
                     <div class="form-group">
                         <label for="email">이메일</label>
-                        <input type="email" id="email" name="email" placeholder="example@domain.com" required>
+                        <input type="email" id="email" name="email" placeholder="example@domain.com" value="${user.email}" required>
                         <div class="error-message" id="emailError"></div>
                     </div>
                     
                     <div class="form-group">
                         <label for="phone">전화번호</label>
-                        <input type="tel" id="phone" name="phone" placeholder="010-1234-5678" required>
+                        <input type="tel" id="phone" name="phone" placeholder="010-1234-5678" value="${user.phone}" required>
                         <div class="error-message" id="phoneError"></div>
                     </div>
                     
