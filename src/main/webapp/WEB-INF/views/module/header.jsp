@@ -2,7 +2,7 @@
 <header class="header">
     <div class="header-container">
         <div class="logo">
-            <a href="/" class="logo-link">
+            <a href="/main" class="logo-link">
                 <h1>ClinicMate</h1>
                 <span class="logo-subtitle">병원 예약 관리 시스템</span>
             </a>
