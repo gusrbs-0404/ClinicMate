@@ -9,7 +9,13 @@
     <title>ClinicMate - 병원 예약 시스템</title>
     <link rel="stylesheet" href="/style/common.css">
     <link rel="stylesheet" href="/style/main.css">
-    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KAKAO_MAP_API_KEY"></script>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=aa5282a38622982d20efb6e4e5a4b894"></script>
+    <script>
+        // 카카오맵 API 키 설정
+        const KAKAO_MAP_API_KEY = 'aa5282a38622982d20efb6e4e5a4b894';
+        console.log('카카오맵 API 스크립트 로드됨');
+    </script>
+    <script src="/script/common.js"></script>
 </head>
 <body>
     <div class="container">
@@ -24,8 +30,8 @@
                     <div class="map-header">
                         <h2>주변 병원 찾기</h2>
                         <div class="location-controls">
-                            <button id="getCurrentLocation" class="btn btn-primary">내 위치 찾기</button>
-                            <button id="showAllHospitals" class="btn btn-secondary">전체 병원 보기</button>
+                            <button id="currentLocationBtn" class="btn btn-primary">현재 위치 찾기</button>
+                            <button id="showAllHospitalsBtn" class="btn btn-secondary">모든 병원 보기</button>
                         </div>
                     </div>
                     <div id="map" class="map-container"></div>
@@ -36,8 +42,8 @@
                     <div class="hospital-header">
                         <h3>병원 정보</h3>
                         <div class="search-controls">
-                            <input type="text" id="hospitalSearch" placeholder="병원명으로 검색..." class="search-input">
-                            <button id="searchHospital" class="btn btn-primary">검색</button>
+                            <input type="text" id="hospitalSearchInput" placeholder="병원명으로 검색..." class="search-input">
+                            <button id="hospitalSearchBtn" class="btn btn-primary">검색</button>
                         </div>
                     </div>
                     
@@ -53,7 +59,7 @@
                                             <p class="hospital-phone">${hospital.phone}</p>
                                         </div>
                                         <div class="hospital-actions">
-                                            <button class="btn btn-primary btn-sm" onclick="selectHospital(${hospital.hospitalId})">
+                                            <button class="btn btn-primary btn-sm" onclick="selectHospital('${hospital.hospitalId}')">
                                                 선택
                                             </button>
                                         </div>
@@ -73,27 +79,13 @@
             <!-- 병원 상세 정보 모달 -->
             <div id="hospitalDetailModal" class="modal">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 id="modalHospitalName">병원 정보</h3>
-                        <span class="close" onclick="closeModal()">&times;</span>
-                    </div>
-                    <div class="modal-body">
-                        <div id="hospitalDetailInfo">
-                            <!-- 동적으로 로드됨 -->
-                        </div>
-                        <div id="departmentList">
-                            <!-- 진료과 목록이 동적으로 로드됨 -->
-                        </div>
-                        <div id="doctorList">
-                            <!-- 의사 목록이 동적으로 로드됨 -->
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button id="reservationBtn" class="btn btn-primary" onclick="goToReservation()" style="display: none;">
-                            예약하기
-                        </button>
-                        <button class="btn btn-secondary" onclick="closeModal()">닫기</button>
-                    </div>
+                    <span class="close-button">&times;</span>
+                    <h2 id="modalHospitalName"></h2>
+                    <p><strong>주소:</strong> <span id="modalHospitalAddress"></span></p>
+                    <p><strong>전화번호:</strong> <span id="modalHospitalPhone"></span></p>
+                    <h3>진료과</h3>
+                    <div id="modalDepartmentList"></div>
+                    <button id="reserveBtn" class="btn btn-primary">예약하기</button>
                 </div>
             </div>
         </main>
@@ -102,7 +94,6 @@
         <jsp:include page="/WEB-INF/views/module/footer.jsp" />
     </div>
     
-    <script src="/script/common.js"></script>
     <script src="/script/main.js"></script>
 </body>
 </html>
