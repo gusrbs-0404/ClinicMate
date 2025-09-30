@@ -1,0 +1,33 @@
+package com.example.ClinicMate.repository;
+
+import com.example.ClinicMate.entity.Doctor;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface DoctorRepository extends JpaRepository<Doctor, Long> {
+    
+    // 병원별 의사 조회
+    List<Doctor> findByHospitalHospitalId(Long hospitalId);
+    
+    // 진료과별 의사 조회
+    List<Doctor> findByDepartmentDeptId(Long deptId);
+    
+    // 병원과 진료과로 의사 조회
+    List<Doctor> findByHospitalHospitalIdAndDepartmentDeptId(Long hospitalId, Long deptId);
+    
+    // 의사명으로 검색
+    List<Doctor> findByNameContaining(String name);
+    
+    // 특정 병원의 특정 진료과 의사 조회
+    @Query("SELECT d FROM Doctor d WHERE d.hospital.hospitalId = :hospitalId AND d.department.deptId = :deptId ORDER BY d.name")
+    List<Doctor> findByHospitalAndDepartment(@Param("hospitalId") Long hospitalId, @Param("deptId") Long deptId);
+    
+    // 모든 의사 조회 (병원명, 진료과명 포함)
+    @Query("SELECT d FROM Doctor d JOIN FETCH d.hospital h JOIN FETCH d.department dept ORDER BY h.hospitalName, dept.deptName, d.name")
+    List<Doctor> findAllWithHospitalAndDepartment();
+}

@@ -1,0 +1,27 @@
+package com.example.ClinicMate.repository;
+
+import com.example.ClinicMate.entity.Department;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface DepartmentRepository extends JpaRepository<Department, Long> {
+    
+    // 병원별 진료과 조회
+    List<Department> findByHospitalHospitalId(Long hospitalId);
+    
+    // 진료과명으로 검색
+    List<Department> findByDeptNameContaining(String deptName);
+    
+    // 특정 병원의 진료과 조회
+    @Query("SELECT d FROM Department d WHERE d.hospital.hospitalId = :hospitalId ORDER BY d.deptName")
+    List<Department> findByHospitalIdOrderByName(@Param("hospitalId") Long hospitalId);
+    
+    // 모든 진료과 조회 (중복 제거)
+    @Query("SELECT DISTINCT d.deptName FROM Department d ORDER BY d.deptName")
+    List<String> findAllDistinctDeptNames();
+}
