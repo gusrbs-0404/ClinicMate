@@ -25,38 +25,26 @@ public class HospitalController {
     
     // 모든 병원 조회
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getAllHospitals() {
+    public ResponseEntity<List<Hospital>> getAllHospitals() {
         try {
             List<Hospital> hospitals = hospitalService.getAllHospitals();
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", hospitals);
-            response.put("count", hospitals.size());
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(hospitals);
         } catch (Exception e) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "병원 목록 조회 실패: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            System.err.println("병원 목록 조회 실패: " + e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
     
     // 병원 ID로 조회
     @GetMapping("/{hospitalId}")
-    public ResponseEntity<Map<String, Object>> getHospitalById(@PathVariable Long hospitalId) {
+    public ResponseEntity<Hospital> getHospitalById(@PathVariable Long hospitalId) {
         try {
             Hospital hospital = hospitalService.getHospitalById(hospitalId)
                     .orElseThrow(() -> new RuntimeException("병원을 찾을 수 없습니다"));
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", hospital);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(hospital);
         } catch (Exception e) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "병원 조회 실패: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            System.err.println("병원 조회 실패: " + e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
     
