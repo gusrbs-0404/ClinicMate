@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "DOCTOR")
@@ -21,10 +22,12 @@ public class Doctor {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hospital_id", nullable = false)
+    @JsonIgnore
     private Hospital hospital;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dept_id", nullable = false)
+    @JsonIgnore
     private Department department;
     
     @Column(name = "name", length = 50, nullable = false)

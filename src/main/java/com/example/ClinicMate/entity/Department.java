@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "DEPARTMENT")
@@ -33,6 +34,7 @@ public class Department {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hospital_id", nullable = false)
+    @JsonIgnore
     private Hospital hospital;
     
     @Column(name = "dept_name", length = 100, nullable = false, unique = true)
@@ -40,5 +42,6 @@ public class Department {
     
     // 진료과와 의사의 일대다 관계
     @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Doctor> doctors;
 }
