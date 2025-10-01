@@ -1,24 +1,77 @@
--- ClinicMate 데이터베이스 테이블 생성 스크립트
+-- ClinicMate 전체 데이터베이스 설정 스크립트
 
 USE clinicmate;
 
--- USER 테이블 생성 (username + name 구조)
+-- 1. USER 테이블 생성
 CREATE TABLE IF NOT EXISTS USER (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    name VARCHAR(50) NOT NULL,
-    phone VARCHAR(20) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
-    role ENUM('PATIENT', 'ADMIN') NOT NULL DEFAULT 'PATIENT',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    phone VARCHAR(20),
+    role ENUM('PATIENT', 'ADMIN') DEFAULT 'PATIENT',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- 샘플 데이터 삽입
-INSERT INTO USER (username, password, name, phone, email, role) VALUES
-('admin', 'admin123', '관리자', '010-0000-0000', 'admin@clinicmate.com', 'ADMIN'),
-('testuser', 'test123', '테스트사용자', '010-1234-5678', 'test@example.com', 'PATIENT');
+-- 2. HOSPITAL 테이블 생성
+CREATE TABLE IF NOT EXISTS HOSPITAL (
+    hospital_id INT AUTO_INCREMENT PRIMARY KEY,
+    hospital_name VARCHAR(100) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    phone VARCHAR(50),
+    lat DOUBLE,
+    lng DOUBLE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 
--- 테이블 생성 확인
-SELECT 'USER 테이블 생성 완료' as message;
-SELECT COUNT(*) as user_count FROM USER;
+-- 3. DEPARTMENT 테이블 생성
+CREATE TABLE IF NOT EXISTS DEPARTMENT (
+    dept_id INT AUTO_INCREMENT PRIMARY KEY,
+    hospital_id INT NOT NULL,
+    dept_name VARCHAR(100) NOT NULL UNIQUE,
+    
+    FOREIGN KEY (hospital_id) REFERENCES HOSPITAL(hospital_id) ON DELETE CASCADE
+);
+
+-- 4. DOCTOR 테이블 생성
+CREATE TABLE IF NOT EXISTS DOCTOR (
+    doctor_id INT AUTO_INCREMENT PRIMARY KEY,
+    hospital_id INT NOT NULL,
+    dept_id INT NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    available_time VARCHAR(255) NOT NULL,
+    
+    FOREIGN KEY (hospital_id) REFERENCES HOSPITAL(hospital_id) ON DELETE CASCADE,
+    FOREIGN KEY (dept_id) REFERENCES DEPARTMENT(dept_id) ON DELETE CASCADE
+);
+
+-- 5. RESERVATION 테이블 생성
+CREATE TABLE IF NOT EXISTS RESERVATION (
+    res_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    hospital_id INT NOT NULL,
+    doctor_id INT NOT NULL,
+    dept_id INT NOT NULL,
+    res_date DATETIME NOT NULL,
+    status ENUM('예약중', '완료', '취소') DEFAULT '예약중',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES USER(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (hospital_id) REFERENCES HOSPITAL(hospital_id) ON DELETE CASCADE,
+    FOREIGN KEY (doctor_id) REFERENCES DOCTOR(doctor_id) ON DELETE CASCADE,
+    FOREIGN KEY (dept_id) REFERENCES DEPARTMENT(dept_id) ON DELETE CASCADE
+);
+
+-- 6. PAYMENT 테이블 생성
+CREATE TABLE IF NOT EXISTS PAYMENT (
+    pay_id INT AUTO_INCREMENT PRIMARY KEY,
+    res_id INT NOT NULL,
+    amount INT NOT NULL,
+    method ENUM('카드', '현금') NOT NULL,
+    status ENUM('대기', '완료', '취소') DEFAULT '대기',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (res_id) REFERENCES RESERVATION(res_id) ON DELETE CASCADE
+);
+
