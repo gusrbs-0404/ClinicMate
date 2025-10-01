@@ -3,6 +3,7 @@ package com.example.ClinicMate.repository;
 import com.example.ClinicMate.entity.Payment;
 import com.example.ClinicMate.entity.Reservation;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -22,4 +23,14 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     
     // 결제 방법별 결제 목록 조회
     List<Payment> findByMethodOrderByCreatedAtDesc(Payment.PaymentMethod method);
+    
+    // 모든 결제 조회 (예약 정보 포함) - 관리자용
+    @Query("SELECT p FROM Payment p " +
+           "LEFT JOIN FETCH p.reservation r " +
+           "LEFT JOIN FETCH r.user " +
+           "LEFT JOIN FETCH r.hospital " +
+           "LEFT JOIN FETCH r.department " +
+           "LEFT JOIN FETCH r.doctor " +
+           "ORDER BY p.createdAt DESC")
+    List<Payment> findAllWithReservationOrderByCreatedAtDesc();
 }

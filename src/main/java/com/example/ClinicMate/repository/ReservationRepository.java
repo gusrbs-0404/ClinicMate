@@ -46,4 +46,13 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
            "WHERE r.user.userId = :userId " +
            "ORDER BY r.createdAt DESC")
     List<Reservation> findByUserUserIdWithDetailsOrderByCreatedAtDesc(@Param("userId") Long userId);
+    
+    // 모든 예약 조회 (연관 엔티티 포함) - 관리자용
+    @Query("SELECT r FROM Reservation r " +
+           "LEFT JOIN FETCH r.user " +
+           "LEFT JOIN FETCH r.hospital " +
+           "LEFT JOIN FETCH r.department " +
+           "LEFT JOIN FETCH r.doctor " +
+           "ORDER BY r.createdAt DESC")
+    List<Reservation> findAllWithDetailsOrderByCreatedAtDesc();
 }
