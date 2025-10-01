@@ -94,6 +94,7 @@ public class UsesActionController {
 					"username", user.getUsername(),
 					"name", user.getName(),
 					"email", user.getEmail(),
+					"phone", user.getPhone() != null ? user.getPhone() : "",
 					"role", user.getRole().name()
 			));
 			

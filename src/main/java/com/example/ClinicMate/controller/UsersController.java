@@ -6,7 +6,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.example.ClinicMate.entity.User;
+import com.example.ClinicMate.entity.Reservation;
 import com.example.ClinicMate.service.UserService;
+import com.example.ClinicMate.service.ReservationService;
+
+import java.util.List;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 public class UsersController {
 
     private final UserService userService;
+    private final ReservationService reservationService;
 
 	// GET: 회원가입 페이지
 	@GetMapping("/signup")
@@ -45,10 +50,14 @@ public class UsersController {
 			User user = userService.findById(userId)
 					.orElseThrow(() -> new RuntimeException("사용자 정보를 찾을 수 없습니다."));
 			
+			// 사용자의 예약 목록 조회
+			List<Reservation> reservations = reservationService.getReservationsByUserId(userId);
+			
 			// LocalDateTime을 Date로 변환하여 전달
 			java.util.Date createdAtDate = java.sql.Timestamp.valueOf(user.getCreatedAt());
 			model.addAttribute("user", user);
 			model.addAttribute("createdAtDate", createdAtDate);
+			model.addAttribute("reservations", reservations);
 		} catch (Exception e) {
 			// 사용자 정보 조회 실패 시 로그인 페이지로 리다이렉트
 			return "redirect:/users/signin";

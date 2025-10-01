@@ -89,39 +89,27 @@ public class HospitalController {
     
     // 병원의 진료과 조회
     @GetMapping("/{hospitalId}/departments")
-    public ResponseEntity<Map<String, Object>> getHospitalDepartments(@PathVariable Long hospitalId) {
+    public ResponseEntity<List<Department>> getHospitalDepartments(@PathVariable Long hospitalId) {
         try {
             List<Department> departments = departmentService.getDepartmentsByHospital(hospitalId);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", departments);
-            response.put("count", departments.size());
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(departments);
         } catch (Exception e) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "진료과 조회 실패: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            System.err.println("진료과 조회 실패: " + e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
     
     // 병원의 특정 진료과 의사 조회
     @GetMapping("/{hospitalId}/departments/{deptId}/doctors")
-    public ResponseEntity<Map<String, Object>> getHospitalDepartmentDoctors(
+    public ResponseEntity<List<Doctor>> getHospitalDepartmentDoctors(
             @PathVariable Long hospitalId,
             @PathVariable Long deptId) {
         try {
             List<Doctor> doctors = doctorService.getDoctorsByHospitalAndDepartment(hospitalId, deptId);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", doctors);
-            response.put("count", doctors.size());
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(doctors);
         } catch (Exception e) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "의사 조회 실패: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            System.err.println("의사 조회 실패: " + e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
 }
