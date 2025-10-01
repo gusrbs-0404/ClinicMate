@@ -59,8 +59,8 @@
                                             <p class="hospital-phone">${hospital.phone}</p>
                                         </div>
                                         <div class="hospital-actions">
-                                            <button class="btn btn-primary btn-sm" onclick="selectHospital('${hospital.hospitalId}')">
-                                                선택
+                                            <button class="btn btn-primary btn-sm" onclick="goToReservation('${hospital.hospitalId}')">
+                                                예약하기
                                             </button>
                                         </div>
                                     </div>

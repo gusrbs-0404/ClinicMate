@@ -244,13 +244,14 @@ class MainPageHandler {
     displayHospitals(hospitals) {
         const hospitalList = document.getElementById('hospitalList');
         hospitalList.innerHTML = hospitals.map(hospital => `
-            <div class="hospital-card" data-hospital-id="${hospital.hospitalId}">
-                <div class="hospital-details">
+            <div class="hospital-card" data-hospital-id="${hospital.hospitalId}" 
+                 data-lat="${hospital.lat}" data-lng="${hospital.lng}">
+                <div class="hospital-details" onclick="moveToHospitalLocation('${hospital.hospitalId}', ${hospital.lat}, ${hospital.lng})">
                     <h3>${hospital.hospitalName}</h3>
                     <p>${hospital.address}</p>
                     <p>${hospital.phone || '전화번호 없음'}</p>
                 </div>
-                <button class="btn btn-primary select-hospital-btn" data-hospital-id="${hospital.hospitalId}">선택</button>
+                <button class="btn btn-primary select-hospital-btn" data-hospital-id="${hospital.hospitalId}">예약하기</button>
             </div>
         `).join('');
         
@@ -258,7 +259,7 @@ class MainPageHandler {
         document.querySelectorAll('.select-hospital-btn').forEach(button => {
             button.addEventListener('click', (e) => {
                 const hospitalId = e.target.dataset.hospitalId;
-                this.selectHospital(hospitalId);
+                this.goToReservationDirect(hospitalId);
             });
         });
     }
@@ -366,20 +367,89 @@ class MainPageHandler {
         departmentListDiv.innerHTML = '<p>진료과 로드 중...</p>';
         try {
             const response = await fetch(`/api/hospitals/${hospitalId}/departments`);
-            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             
-            if (data.success && data.data.length > 0) {
-                departmentListDiv.innerHTML = data.data.map(dept => `<p>${dept.deptName}</p>`).join('');
+            const departments = await response.json();
+            console.log('🏥 로드된 진료과:', departments);
+            
+            if (departments && departments.length > 0) {
+                departmentListDiv.innerHTML = departments.map(dept => 
+                    `<div class="department-item">
+                        <span class="dept-name">${dept.deptName}</span>
+                        <button class="btn btn-primary btn-sm" onclick="selectDepartment('${dept.deptId}', '${dept.deptName}')">
+                            예약하기
+                        </button>
+                    </div>`
+                ).join('');
             } else {
                 departmentListDiv.innerHTML = '<p>등록된 진료과가 없습니다.</p>';
             }
         } catch (error) {
-            console.error('진료과 로드 실패:', error);
+            console.error('❌ 진료과 로드 실패:', error);
             departmentListDiv.innerHTML = '<p>진료과를 불러오는데 실패했습니다.</p>';
         }
         
         // 모달 열기
         document.getElementById('hospitalDetailModal').style.display = 'flex';
+    }
+    
+    // 진료과 선택
+    async selectDepartment(deptId, deptName) {
+        console.log('🏥 진료과 선택:', deptId, deptName);
+        
+        // 선택된 진료과 정보 저장
+        this.selectedDepartment = { deptId: deptId, deptName: deptName };
+        
+        // 의사 정보 로드
+        const doctorListDiv = document.getElementById('modalDepartmentList');
+        doctorListDiv.innerHTML = '<p>의사 정보 로드 중...</p>';
+        
+        try {
+            const response = await fetch(`/api/hospitals/${this.selectedHospital.hospitalId}/departments/${deptId}/doctors`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const doctors = await response.json();
+            console.log('👨‍⚕️ 로드된 의사:', doctors);
+            
+            if (doctors && doctors.length > 0) {
+                doctorListDiv.innerHTML = `
+                    <h4>${deptName} - 의사 목록</h4>
+                    ${doctors.map(doctor => `
+                        <div class="doctor-item">
+                            <div class="doctor-info">
+                                <h5>${doctor.name} 의사</h5>
+                                <p class="available-time">진료시간: ${doctor.availableTime}</p>
+                            </div>
+                            <button class="btn btn-primary btn-sm" onclick="selectDoctor('${doctor.doctorId}', '${doctor.name}', '${deptName}')">
+                                예약하기
+                            </button>
+                        </div>
+                    `).join('')}
+                `;
+            } else {
+                doctorListDiv.innerHTML = '<p>등록된 의사가 없습니다.</p>';
+            }
+        } catch (error) {
+            console.error('❌ 의사 정보 로드 실패:', error);
+            doctorListDiv.innerHTML = '<p>의사 정보를 불러오는데 실패했습니다.</p>';
+        }
+    }
+    
+    // 의사 선택
+    selectDoctor(doctorId, doctorName, deptName) {
+        console.log('👨‍⚕️ 의사 선택:', doctorId, doctorName, deptName);
+        
+        // 예약 페이지로 이동
+        const deptId = this.selectedDepartment?.deptId;
+        if (deptId) {
+            window.location.href = `/reservation?hospitalId=${this.selectedHospital.hospitalId}&deptId=${deptId}&doctorId=${doctorId}`;
+        } else {
+            alert('진료과 정보를 찾을 수 없습니다.');
+        }
     }
     
     // 병원 상세 모달 닫기
@@ -400,6 +470,73 @@ class MainPageHandler {
         alert(`${this.selectedHospital.hospitalName} 예약 페이지로 이동합니다.`);
         // window.location.href = `/reservation?hospitalId=${this.selectedHospital.hospitalId}`;
     }
+    
+    // 직접 예약 페이지로 이동
+    goToReservationDirect(hospitalId) {
+        // 로그인 상태 확인
+        if (!Utils.isLoggedIn()) {
+            alert('예약을 위해서는 로그인이 필요합니다.');
+            window.location.href = '/users/signin';
+            return;
+        }
+        
+        window.location.href = `/reservation?hospitalId=${hospitalId}`;
+    }
+    
+    // 병원 위치로 지도 이동
+    moveToHospitalLocation(hospitalId, lat, lng) {
+        if (this.map && lat && lng) {
+            const hospitalPosition = new kakao.maps.LatLng(lat, lng);
+            this.map.setCenter(hospitalPosition);
+            this.map.setLevel(3); // 확대
+            
+            // 해당 병원 마커에 인포윈도우 표시
+            const hospital = this.hospitals.find(h => h.hospitalId == hospitalId);
+            if (hospital) {
+                // hospitalId로 마커 찾기
+                const marker = this.markers.find(m => m.hospitalId == hospitalId);
+                if (marker && marker.infowindow) {
+                    marker.infowindow.open(this.map, marker);
+                } else {
+                    // 마커를 찾지 못한 경우 새로 생성
+                    this.createHospitalMarker(hospital);
+                }
+            }
+        }
+    }
+    
+    // 병원 마커 생성 (개별)
+    createHospitalMarker(hospital) {
+        if (!hospital.lat || !hospital.lng) return;
+        
+        const imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
+        const imageSize = new kakao.maps.Size(24, 35);
+        const markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize);
+        
+        const marker = new kakao.maps.Marker({
+            position: new kakao.maps.LatLng(hospital.lat, hospital.lng),
+            image: markerImage,
+            title: hospital.hospitalName
+        });
+        
+        marker.hospitalId = hospital.hospitalId;
+        marker.setMap(this.map);
+        this.markers.push(marker);
+        
+        // 인포윈도우 생성 및 표시
+        const infowindow = new kakao.maps.InfoWindow({
+            content: `
+                <div style="padding: 5px; font-size: 12px;">
+                    <strong>${hospital.hospitalName}</strong><br>
+                    ${hospital.address}<br>
+                    ${hospital.phone || '전화번호 없음'}
+                </div>
+            `
+        });
+        
+        marker.infowindow = infowindow;
+        infowindow.open(this.map, marker);
+    }
 }
 
 // 전역 함수로 selectHospital 정의
@@ -416,6 +553,51 @@ function selectHospital(hospitalId) {
                 console.error('❌ MainPageHandler 초기화 실패');
             }
         }, 1000);
+    }
+}
+
+// 전역 함수로 selectDepartment 정의
+function selectDepartment(deptId, deptName) {
+    if (window.mainHandler && window.mainHandler.isInitialized) {
+        window.mainHandler.selectDepartment(deptId, deptName);
+    } else {
+        console.error('❌ MainPageHandler가 초기화되지 않았습니다.');
+    }
+}
+
+// 전역 함수로 selectDoctor 정의
+function selectDoctor(doctorId, doctorName, deptName) {
+    if (window.mainHandler && window.mainHandler.isInitialized) {
+        window.mainHandler.selectDoctor(doctorId, doctorName, deptName);
+    } else {
+        console.error('❌ MainPageHandler가 초기화되지 않았습니다.');
+    }
+}
+
+// 전역 함수로 goToReservation 정의
+function goToReservation(hospitalId) {
+    // 로그인 상태 확인
+    if (!Utils.isLoggedIn()) {
+        alert('예약을 위해서는 로그인이 필요합니다.');
+        window.location.href = '/users/signin';
+        return;
+    }
+    
+    if (window.mainHandler && window.mainHandler.isInitialized) {
+        window.mainHandler.goToReservationDirect(hospitalId);
+    } else {
+        console.error('❌ MainPageHandler가 초기화되지 않았습니다.');
+        // MainPageHandler가 초기화되지 않았어도 로그인 상태라면 직접 이동
+        window.location.href = `/reservation?hospitalId=${hospitalId}`;
+    }
+}
+
+// 전역 함수로 moveToHospitalLocation 정의
+function moveToHospitalLocation(hospitalId, lat, lng) {
+    if (window.mainHandler && window.mainHandler.isInitialized) {
+        window.mainHandler.moveToHospitalLocation(hospitalId, lat, lng);
+    } else {
+        console.error('❌ MainPageHandler가 초기화되지 않았습니다.');
     }
 }
 

@@ -239,5 +239,22 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// 헤더 메뉴 업데이트 함수
+function updateHeaderMenu() {
+    const guestMenu = document.getElementById('guestMenu');
+    const userMenu = document.getElementById('userMenu');
+    
+    if (Utils.isLoggedIn()) {
+        // 로그인 상태
+        if (guestMenu) guestMenu.style.display = 'none';
+        if (userMenu) userMenu.style.display = 'block';
+    } else {
+        // 비로그인 상태
+        if (guestMenu) guestMenu.style.display = 'block';
+        if (userMenu) userMenu.style.display = 'none';
+    }
+}
+
 // 전역 함수들
 window.Utils = Utils;
+window.updateHeaderMenu = updateHeaderMenu;

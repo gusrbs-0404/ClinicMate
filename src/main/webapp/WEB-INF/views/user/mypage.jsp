@@ -75,13 +75,91 @@
                 <div class="reservation-section">
                     <h2>예약 내역</h2>
                     <div class="reservation-list" id="reservationList">
-                        <div class="no-data">
-                            <p>예약 내역이 없습니다.</p>
-                        </div>
+                        <c:choose>
+                            <c:when test="${not empty reservations}">
+                                <c:forEach var="reservation" items="${reservations}">
+                                    <div class="reservation-item">
+                                        <div class="reservation-info">
+                                            <h4>${reservation.hospital.hospitalName}</h4>
+                                            <p><strong>진료과:</strong> ${reservation.department.deptName}</p>
+                                            <p><strong>의사:</strong> ${reservation.doctor.name}</p>
+                                            <p><strong>예약일시:</strong> 
+                                                ${reservation.resDate}
+                                            </p>
+                                            <p><strong>상태:</strong> 
+                                                <span class="status status-${reservation.status.name()}">${reservation.status.name()}</span>
+                                            </p>
+                                        </div>
+                                        <div class="reservation-actions">
+                                            <c:if test="${reservation.status.name() == '예약중'}">
+                                                <button class="btn btn-primary btn-sm" onclick="goToPayment(${reservation.resId})">결제하기</button>
+                                                <button class="btn btn-danger btn-sm" onclick="cancelReservation(${reservation.resId})">예약취소</button>
+                                            </c:if>
+                                            <c:if test="${reservation.status.name() == '완료'}">
+                                                <span class="completed-text">예약 완료</span>
+                                                <button class="btn btn-danger btn-sm" onclick="cancelReservation(${reservation.resId})">예약취소</button>
+                                            </c:if>
+                                            <c:if test="${reservation.status.name() == '취소'}">
+                                                <span class="cancelled-text">예약 취소됨</span>
+                                            </c:if>
+                                        </div>
+                                    </div>
+                                </c:forEach>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="no-data">
+                                    <p>예약 내역이 없습니다.</p>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                 </div>
             </div>
         </main>
+    </div>
+    
+    <!-- 결제 모달 -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>결제하기</h3>
+                <span class="close" onclick="closePaymentModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="payment-info">
+                    <h4>예약 정보</h4>
+                    <div id="paymentReservationInfo">
+                        <!-- 예약 정보가 여기에 표시됩니다 -->
+                    </div>
+                </div>
+                
+                <div class="payment-form">
+                    <h4>결제 정보</h4>
+                    <div class="form-group">
+                        <label for="paymentAmount">결제 금액 (원)</label>
+                        <input type="number" id="paymentAmount" name="amount" min="1000" max="1000000" value="50000" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>결제 방법</label>
+                        <div class="payment-methods">
+                            <label class="payment-method">
+                                <input type="radio" name="paymentMethod" value="카드" checked>
+                                <span class="method-label">💳 카드</span>
+                            </label>
+                            <label class="payment-method">
+                                <input type="radio" name="paymentMethod" value="현금">
+                                <span class="method-label">💰 현금</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closePaymentModal()">취소</button>
+                <button type="button" class="btn btn-primary" onclick="processPayment()">결제하기</button>
+            </div>
+        </div>
     </div>
     
     <script src="/script/common.js"></script>

@@ -393,7 +393,8 @@ const MyPageHandler = {
     init: async function() {
         try {
             await this.loadUserInfo();
-            await this.loadReservations();
+            // JSP에서 예약 데이터가 이미 렌더링되므로 loadReservations 호출하지 않음
+            console.log('마이페이지 초기화 완료');
         } catch (error) {
             console.error('마이페이지 초기화 오류:', error);
         }
@@ -425,10 +426,9 @@ const MyPageHandler = {
             const currentUser = Utils.getCurrentUser();
             if (!currentUser) return;
 
-            // 현재는 예약 기능이 구현되지 않았으므로 빈 배열로 처리
-            const reservations = [];
-            this.displayReservations(reservations);
-            console.log('예약 내역 로드 완료 (현재 예약 없음)');
+            // JSP에서 이미 예약 데이터가 렌더링되어 있으므로
+            // JavaScript로 추가 로드할 필요 없음
+            console.log('예약 내역 로드 완료 (JSP에서 렌더링됨)');
 
         } catch (error) {
             console.error('예약 내역 로드 오류:', error);
@@ -884,6 +884,178 @@ function withdrawRequest() {
 function goBack() {
     window.history.back();
 }
+
+// 예약 관련 전역 함수들
+let currentReservationId = null;
+
+function goToPayment(reservationId) {
+    currentReservationId = reservationId;
+    openPaymentModal(reservationId);
+}
+
+async function cancelReservation(reservationId) {
+    if (confirm('정말로 예약을 취소하시겠습니까?\n\n예약 취소 시 결제도 함께 취소됩니다.')) {
+        try {
+            const response = await fetch(`/api/reservations/${reservationId}`, {
+                method: 'DELETE'
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('예약이 취소되었습니다.\n결제도 함께 취소되었습니다.');
+                // 페이지 새로고침
+                window.location.reload();
+            } else {
+                alert('예약 취소 실패: ' + result.message);
+            }
+        } catch (error) {
+            console.error('예약 취소 API 호출 실패:', error);
+            alert('예약 취소 처리 중 오류가 발생했습니다.');
+        }
+    }
+}
+
+// 결제 모달 관련 함수들
+function openPaymentModal(reservationId) {
+    // 예약 정보를 모달에 표시
+    loadReservationInfoForPayment(reservationId);
+    
+    // 모달 표시
+    const modal = document.getElementById('paymentModal');
+    modal.style.display = 'block';
+    
+    // 모달 외부 클릭 시 닫기
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            closePaymentModal();
+        }
+    };
+}
+
+function closePaymentModal() {
+    const modal = document.getElementById('paymentModal');
+    modal.style.display = 'none';
+    currentReservationId = null;
+}
+
+async function loadReservationInfoForPayment(reservationId) {
+    try {
+        // 예약 정보를 가져와서 모달에 표시
+        const reservationInfo = document.getElementById('paymentReservationInfo');
+        
+        // 현재 페이지의 예약 정보에서 해당 예약 찾기
+        const reservationItems = document.querySelectorAll('.reservation-item');
+        let reservationData = null;
+        
+        for (let item of reservationItems) {
+            const cancelBtn = item.querySelector('button[onclick*="cancelReservation"]');
+            if (cancelBtn) {
+                const onclickAttr = cancelBtn.getAttribute('onclick');
+                const match = onclickAttr.match(/cancelReservation\((\d+)\)/);
+                if (match && match[1] == reservationId) {
+                    // 예약 정보 추출
+                    const hospitalName = item.querySelector('h4').textContent;
+                    const deptName = item.querySelector('p:nth-of-type(1)').textContent.replace('진료과: ', '');
+                    const doctorName = item.querySelector('p:nth-of-type(2)').textContent.replace('의사: ', '');
+                    const resDate = item.querySelector('p:nth-of-type(3)').textContent.replace('예약일시: ', '');
+                    
+                    reservationData = {
+                        hospitalName,
+                        deptName,
+                        doctorName,
+                        resDate
+                    };
+                    break;
+                }
+            }
+        }
+        
+        if (reservationData) {
+            reservationInfo.innerHTML = `
+                <p><strong>병원:</strong> ${reservationData.hospitalName}</p>
+                <p><strong>진료과:</strong> ${reservationData.deptName}</p>
+                <p><strong>의사:</strong> ${reservationData.doctorName}</p>
+                <p><strong>예약일시:</strong> ${reservationData.resDate}</p>
+            `;
+        } else {
+            reservationInfo.innerHTML = '<p>예약 정보를 불러올 수 없습니다.</p>';
+        }
+    } catch (error) {
+        console.error('예약 정보 로드 실패:', error);
+        document.getElementById('paymentReservationInfo').innerHTML = '<p>예약 정보를 불러올 수 없습니다.</p>';
+    }
+}
+
+async function processPayment() {
+    if (!currentReservationId) {
+        alert('예약 정보를 찾을 수 없습니다.');
+        return;
+    }
+    
+    const amount = document.getElementById('paymentAmount').value;
+    const method = document.querySelector('input[name="paymentMethod"]:checked').value;
+    
+    // 입력 검증
+    if (!amount || amount < 1000) {
+        alert('결제 금액은 1,000원 이상이어야 합니다.');
+        return;
+    }
+    
+    if (!method) {
+        alert('결제 방법을 선택해주세요.');
+        return;
+    }
+    
+    if (confirm(`결제 금액: ${parseInt(amount).toLocaleString()}원\n결제 방법: ${method}\n\n결제를 진행하시겠습니까?`)) {
+        try {
+            // 결제 생성 API 호출
+            const response = await fetch('/api/payments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    resId: currentReservationId,
+                    amount: amount,
+                    method: method
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // 결제 완료 처리
+                const completeResponse = await fetch(`/api/payments/${result.paymentId}/complete`, {
+                    method: 'POST'
+                });
+                
+                const completeResult = await completeResponse.json();
+                
+                if (completeResult.success) {
+                    alert('결제가 완료되었습니다!');
+                    closePaymentModal();
+                    // 페이지 새로고침
+                    window.location.reload();
+                } else {
+                    alert('결제 완료 처리 실패: ' + completeResult.message);
+                }
+            } else {
+                alert('결제 실패: ' + result.message);
+            }
+        } catch (error) {
+            console.error('결제 API 호출 실패:', error);
+            alert('결제 처리 중 오류가 발생했습니다.');
+        }
+    }
+}
+
+// 전역 함수 등록
+window.goToPayment = goToPayment;
+window.cancelReservation = cancelReservation;
+window.openPaymentModal = openPaymentModal;
+window.closePaymentModal = closePaymentModal;
+window.processPayment = processPayment;
 
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {

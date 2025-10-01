@@ -385,3 +385,305 @@
     color: #0c5460;
     border: 1px solid #bee5eb;
 }
+
+/* 예약 내역 스타일 */
+.reservation-list {
+    margin-top: 20px;
+}
+
+.reservation-item {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.reservation-info h4 {
+    color: #134686;
+    margin: 0 0 10px 0;
+    font-size: 18px;
+}
+
+.reservation-info p {
+    margin: 5px 0;
+    color: #333;
+}
+
+.reservation-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 120px;
+}
+
+.status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status-예약중 {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-완료 {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-취소 {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.completed-text {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.cancelled-text {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.no-data {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+/* 결제 모달 스타일 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    background-color: #134686;
+    color: white;
+    padding: 20px;
+    border-radius: 10px 10px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.close {
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close:hover {
+    opacity: 0.7;
+}
+
+.modal-body {
+    padding: 30px;
+}
+
+.payment-info {
+    margin-bottom: 25px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #134686;
+}
+
+.payment-info h4 {
+    color: #134686;
+    margin: 0 0 15px 0;
+    font-size: 16px;
+}
+
+.payment-form h4 {
+    color: #134686;
+    margin: 0 0 20px 0;
+    font-size: 16px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-group input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.form-group input[type="number"]:focus {
+    outline: none;
+    border-color: #134686;
+    box-shadow: 0 0 0 2px rgba(19, 70, 134, 0.2);
+}
+
+.payment-methods {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.payment-method {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 12px 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    flex: 1;
+    justify-content: center;
+}
+
+.payment-method:hover {
+    border-color: #134686;
+    background-color: #f8f9fa;
+}
+
+.payment-method input[type="radio"] {
+    margin: 0 8px 0 0;
+    transform: scale(1.2);
+}
+
+.payment-method input[type="radio"]:checked + .method-label {
+    color: #134686;
+    font-weight: bold;
+}
+
+.payment-method:has(input[type="radio"]:checked) {
+    border-color: #134686;
+    background-color: #e9f0f8;
+}
+
+.method-label {
+    font-size: 16px;
+    color: #333;
+}
+
+.modal-footer {
+    padding: 20px 30px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.modal-footer .btn {
+    padding: 12px 24px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modal-footer .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.modal-footer .btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+.modal-footer .btn-primary {
+    background-color: #134686;
+    color: white;
+}
+
+.modal-footer .btn-primary:hover {
+    background-color: #0e3366;
+}
+
+.modal-footer .btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* 반응형 디자인 - 예약 내역 */
+@media (max-width: 768px) {
+    .reservation-item {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .reservation-actions {
+        flex-direction: row;
+        justify-content: flex-start;
+        min-width: auto;
+    }
+    
+    .modal-content {
+        margin: 10% auto;
+        width: 95%;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    .payment-methods {
+        flex-direction: column;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+    }
+}
