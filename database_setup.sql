@@ -75,3 +75,26 @@ CREATE TABLE IF NOT EXISTS PAYMENT (
     FOREIGN KEY (res_id) REFERENCES RESERVATION(res_id) ON DELETE CASCADE
 );
 
+-- 7. NOTIFICATION 테이블 생성 (알림 정보)
+CREATE TABLE IF NOT EXISTS NOTIFICATION (
+    noti_id INT AUTO_INCREMENT PRIMARY KEY,
+    res_id INT NOT NULL,
+    type ENUM('예약확정', '예약취소') NOT NULL,
+    recipient VARCHAR(100) NOT NULL,
+    status ENUM('성공', '실패') DEFAULT '성공',
+    sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (res_id) REFERENCES RESERVATION(res_id) ON DELETE CASCADE
+);
+
+-- 8. 테스트 데이터 삽입
+-- 관리자 계정 생성
+INSERT INTO USER (username, password, name, email, phone, role, created_at) 
+VALUES ('admin', 'admin123', '관리자', 'admin@clinicmate.com', '010-1234-5678', 'ADMIN', NOW())
+ON DUPLICATE KEY UPDATE role = 'ADMIN';
+
+-- 테스트 사용자 계정 생성
+INSERT INTO USER (username, password, name, email, phone, role, created_at) 
+VALUES ('testuser', 'test123', '테스트사용자', 'test@clinicmate.com', '010-9876-5432', 'PATIENT', NOW())
+ON DUPLICATE KEY UPDATE role = 'PATIENT';
+
