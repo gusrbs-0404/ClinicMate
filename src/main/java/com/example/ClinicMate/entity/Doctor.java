@@ -22,12 +22,10 @@ public class Doctor {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hospital_id", nullable = false)
-    @JsonIgnore
     private Hospital hospital;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dept_id", nullable = false)
-    @JsonIgnore
     private Department department;
     
     @Column(name = "name", length = 50, nullable = false)

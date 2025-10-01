@@ -24,7 +24,6 @@ public class Payment {
     
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "res_id", nullable = false)
-    @JsonIgnore
     private Reservation reservation;
     
     @Column(name = "amount", nullable = false)

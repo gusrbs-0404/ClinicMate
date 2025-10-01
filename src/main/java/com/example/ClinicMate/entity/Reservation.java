@@ -24,22 +24,18 @@ public class Reservation {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonIgnore
     private User user;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hospital_id", nullable = false)
-    @JsonIgnore
     private Hospital hospital;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id", nullable = false)
-    @JsonIgnore
     private Doctor doctor;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dept_id", nullable = false)
-    @JsonIgnore
     private Department department;
     
     @Column(name = "res_date", nullable = false)
