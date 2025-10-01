@@ -121,4 +121,20 @@ public class ReservationService {
                 .map(reservation -> reservation.getResDate().toLocalTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")))
                 .collect(java.util.stream.Collectors.toList());
     }
+    
+    // 관리자용 메서드들
+    @Transactional(readOnly = true)
+    public List<Reservation> getAllReservations() {
+        return reservationRepository.findAllWithDetailsOrderByCreatedAtDesc();
+    }
+    
+    @Transactional(readOnly = true)
+    public long getTotalReservations() {
+        return reservationRepository.count();
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Reservation> getReservationsByHospital(Long hospitalId) {
+        return reservationRepository.findByHospitalHospitalIdOrderByResDateAsc(hospitalId);
+    }
 }

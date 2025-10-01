@@ -84,4 +84,35 @@ public class PaymentService {
     public List<Payment> getPaymentsByStatus(Payment.PaymentStatus status) {
         return paymentRepository.findByStatusOrderByCreatedAtDesc(status);
     }
+    
+    // 관리자용 메서드들
+    @Transactional(readOnly = true)
+    public List<Payment> getAllPayments() {
+        return paymentRepository.findAllWithReservationOrderByCreatedAtDesc();
+    }
+    
+    @Transactional(readOnly = true)
+    public long getTotalPayments() {
+        return paymentRepository.count();
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Payment> getPaymentsByHospital(Long hospitalId) {
+        // 병원별 결제 조회는 예약을 통해 필터링
+        List<Payment> allPayments = paymentRepository.findAll();
+        return allPayments.stream()
+                .filter(payment -> payment.getReservation() != null && 
+                                 payment.getReservation().getHospital() != null &&
+                                 payment.getReservation().getHospital().getHospitalId().equals(hospitalId))
+                .collect(java.util.stream.Collectors.toList());
+    }
+    
+    @Transactional
+    public Payment updatePaymentStatus(Long payId, Payment.PaymentStatus status) {
+        Payment payment = paymentRepository.findById(payId)
+                .orElseThrow(() -> new RuntimeException("결제 정보를 찾을 수 없습니다."));
+        
+        payment.setStatus(status);
+        return paymentRepository.save(payment);
+    }
 }

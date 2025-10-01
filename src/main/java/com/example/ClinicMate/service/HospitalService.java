@@ -79,4 +79,9 @@ public class HospitalService {
         }
         hospitalRepository.deleteById(hospitalId);
     }
+    
+    // 관리자용 메서드들
+    public long getTotalHospitals() {
+        return hospitalRepository.count();
+    }
 }

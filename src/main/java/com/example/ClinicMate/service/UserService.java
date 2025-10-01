@@ -1,5 +1,6 @@
 package com.example.ClinicMate.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -119,5 +120,22 @@ public class UserService {
     
     public boolean isPhoneAvailable(String phone) {
         return !userRepository.existsByPhone(phone);
+    }
+    
+    // 관리자용 메서드들
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+    
+    public long getTotalUsers() {
+        return userRepository.count();
+    }
+    
+    @Transactional
+    public User updateUserRole(Long userId, User.UserRole role) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        user.setRole(role);
+        return userRepository.save(user);
     }
 }
