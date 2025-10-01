@@ -87,8 +87,17 @@ public class UsesActionController {
 			session.setAttribute("userId", user.getUserId());
 			session.setAttribute("role", user.getRole().name());
 			
+			// 사용자 권한에 따른 리다이렉트 URL 설정
+			String redirectUrl;
+			if (user.getRole() == User.UserRole.ADMIN) {
+				redirectUrl = "/admin";
+			} else {
+				redirectUrl = "/main";
+			}
+			
 			response.put("success", true);
 			response.put("message", "로그인되었습니다.");
+			response.put("redirectUrl", redirectUrl);
 			response.put("user", Map.of(
 					"userId", user.getUserId(),
 					"username", user.getUsername(),
@@ -98,7 +107,7 @@ public class UsesActionController {
 					"role", user.getRole().name()
 			));
 			
-			log.info("로그인 성공: {}", username);
+			log.info("로그인 성공: {} (권한: {})", username, user.getRole());
 			return ResponseEntity.ok(response);
 			
 		} catch (Exception e) {

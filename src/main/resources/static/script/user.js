@@ -370,10 +370,20 @@ const SigninHandler = {
                     updateHeaderMenu();
                 }
                 
-                Utils.showSuccess('로그인되었습니다. 마이페이지로 이동합니다.');
+                // 사용자 권한에 따른 메시지 설정
+                let redirectMessage = '로그인되었습니다.';
+                if (result.user.role === 'ADMIN') {
+                    redirectMessage = '관리자로 로그인되었습니다. 관리자 페이지로 이동합니다.';
+                } else {
+                    redirectMessage = '로그인되었습니다. 메인 페이지로 이동합니다.';
+                }
                 
+                Utils.showSuccess(redirectMessage);
+                
+                // 서버에서 받은 redirectUrl 사용
+                const redirectUrl = result.redirectUrl || '/main';
                 setTimeout(() => {
-                    window.location.href = '/users/me';
+                    window.location.href = redirectUrl;
                 }, 1500);
             } else {
                 Utils.showErrorMessage(result.message || '로그인 중 오류가 발생했습니다.');
