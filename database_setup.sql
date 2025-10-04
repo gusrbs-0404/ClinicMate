@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS USER (
     email VARCHAR(100) NOT NULL UNIQUE,
     phone VARCHAR(20),
     role ENUM('PATIENT', 'ADMIN') DEFAULT 'PATIENT',
+    withdrawal_status ENUM('ACTIVE', 'WITHDRAWAL_REQUESTED', 'WITHDRAWN') DEFAULT 'ACTIVE',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -86,15 +87,3 @@ CREATE TABLE IF NOT EXISTS NOTIFICATION (
     
     FOREIGN KEY (res_id) REFERENCES RESERVATION(res_id) ON DELETE CASCADE
 );
-
--- 8. 테스트 데이터 삽입
--- 관리자 계정 생성
-INSERT INTO USER (username, password, name, email, phone, role, created_at) 
-VALUES ('admin', 'admin123', '관리자', 'admin@clinicmate.com', '010-1234-5678', 'ADMIN', NOW())
-ON DUPLICATE KEY UPDATE role = 'ADMIN';
-
--- 테스트 사용자 계정 생성
-INSERT INTO USER (username, password, name, email, phone, role, created_at) 
-VALUES ('testuser', 'test123', '테스트사용자', 'test@clinicmate.com', '010-9876-5432', 'PATIENT', NOW())
-ON DUPLICATE KEY UPDATE role = 'PATIENT';
-
