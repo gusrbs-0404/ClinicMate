@@ -138,8 +138,23 @@ public class AdminController {
 
     @DeleteMapping("/user/{id}")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> deleteUser(@PathVariable Long id, HttpSession session) {
+        if (!isAdmin(session)) {
+            return unauthorizedResponse();
+        }
+        
         try {
+            // 사용자 정보 조회하여 탈퇴 요청 상태 확인
+            User user = userService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+            
+            if (user.getWithdrawalStatus() != User.WithdrawalStatus.WITHDRAWAL_REQUESTED) {
+                Map<String, String> response = new HashMap<>();
+                response.put("status", "error");
+                response.put("message", "탈퇴 요청이 없는 사용자는 삭제할 수 없습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
             userService.deleteUser(id);
             Map<String, String> response = new HashMap<>();
             response.put("status", "success");
@@ -148,16 +163,46 @@ public class AdminController {
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
             response.put("status", "error");
-            response.put("message", "사용자 삭제에 실패했습니다.");
+            response.put("message", "사용자 삭제에 실패했습니다: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @PostMapping("/user")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> createUser(@RequestBody User user, HttpSession session) {
+        if (!isAdmin(session)) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "error");
+            response.put("message", "관리자 권한이 필요합니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        }
+        
+        try {
+            User createdUser = userService.signup(user);
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "사용자가 등록되었습니다.");
+            response.put("user", createdUser);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "error");
+            response.put("message", "사용자 등록에 실패했습니다: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
     @PutMapping("/user/{id}/role")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> updateUserRole(@PathVariable Long id, @RequestParam String role) {
+    public ResponseEntity<Map<String, String>> updateUserRole(@PathVariable Long id, @RequestParam String role, HttpSession session) {
+        if (!isAdmin(session)) {
+            return unauthorizedResponse();
+        }
+        
         try {
-            // TODO: userService.updateUserRole(id, role) 메서드 구현 필요
+            User.UserRole userRole = User.UserRole.valueOf(role);
+            userService.updateUserRole(id, userRole);
             Map<String, String> response = new HashMap<>();
             response.put("status", "success");
             response.put("message", "사용자 권한이 업데이트되었습니다.");
@@ -165,7 +210,45 @@ public class AdminController {
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
             response.put("status", "error");
-            response.put("message", "사용자 권한 업데이트에 실패했습니다.");
+            response.put("message", "사용자 권한 업데이트에 실패했습니다: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    // 탈퇴 요청된 사용자 목록 조회
+    @GetMapping("/users/withdrawal-requests")
+    @ResponseBody
+    public ResponseEntity<List<User>> getUsersWithWithdrawalRequest(HttpSession session) {
+        if (!isAdmin(session)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+        
+        try {
+            List<User> users = userService.getUsersWithWithdrawalRequest();
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+    
+    // 탈퇴 승인
+    @PostMapping("/user/{id}/approve-withdrawal")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> approveWithdrawal(@PathVariable Long id, HttpSession session) {
+        if (!isAdmin(session)) {
+            return unauthorizedResponse();
+        }
+        
+        try {
+            userService.approveWithdrawal(id);
+            Map<String, String> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "탈퇴가 승인되었습니다.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("status", "error");
+            response.put("message", "탈퇴 승인에 실패했습니다: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
@@ -188,26 +271,38 @@ public class AdminController {
 
     @PostMapping("/hospital")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> createHospital(@RequestBody Hospital hospital) {
+    public ResponseEntity<Map<String, Object>> createHospital(@RequestBody Hospital hospital, HttpSession session) {
+        if (!isAdmin(session)) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "error");
+            response.put("message", "관리자 권한이 필요합니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        }
+        
         try {
-            // TODO: HospitalService에 createHospital 메서드 추가 필요
-            Map<String, String> response = new HashMap<>();
+            Hospital createdHospital = hospitalService.createHospital(hospital);
+            Map<String, Object> response = new HashMap<>();
             response.put("status", "success");
             response.put("message", "병원이 등록되었습니다.");
+            response.put("hospital", createdHospital);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            Map<String, String> response = new HashMap<>();
+            Map<String, Object> response = new HashMap<>();
             response.put("status", "error");
-            response.put("message", "병원 등록에 실패했습니다.");
+            response.put("message", "병원 등록에 실패했습니다: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
     @PutMapping("/hospital/{id}")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> updateHospital(@PathVariable Long id, @RequestBody Hospital hospital) {
+    public ResponseEntity<Map<String, String>> updateHospital(@PathVariable Long id, @RequestBody Hospital hospital, HttpSession session) {
+        if (!isAdmin(session)) {
+            return unauthorizedResponse();
+        }
+        
         try {
-            // TODO: HospitalService에 updateHospital 메서드 추가 필요
+            hospitalService.updateHospital(id, hospital);
             Map<String, String> response = new HashMap<>();
             response.put("status", "success");
             response.put("message", "병원 정보가 업데이트되었습니다.");
@@ -215,16 +310,20 @@ public class AdminController {
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
             response.put("status", "error");
-            response.put("message", "병원 정보 업데이트에 실패했습니다.");
+            response.put("message", "병원 정보 업데이트에 실패했습니다: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
     @DeleteMapping("/hospital/{id}")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> deleteHospital(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> deleteHospital(@PathVariable Long id, HttpSession session) {
+        if (!isAdmin(session)) {
+            return unauthorizedResponse();
+        }
+        
         try {
-            // TODO: HospitalService에 deleteHospital 메서드 추가 필요
+            hospitalService.deleteHospital(id);
             Map<String, String> response = new HashMap<>();
             response.put("status", "success");
             response.put("message", "병원이 삭제되었습니다.");
@@ -232,7 +331,7 @@ public class AdminController {
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
             response.put("status", "error");
-            response.put("message", "병원 삭제에 실패했습니다.");
+            response.put("message", "병원 삭제에 실패했습니다: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
@@ -240,26 +339,42 @@ public class AdminController {
 
     @PostMapping("/department")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> createDepartment(@RequestBody Department department) {
+    public ResponseEntity<Map<String, Object>> createDepartment(@RequestBody Map<String, Object> request, HttpSession session) {
+        if (!isAdmin(session)) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "error");
+            response.put("message", "관리자 권한이 필요합니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        }
+        
         try {
-            // TODO: DepartmentService에 createDepartment 메서드 추가 필요
-            Map<String, String> response = new HashMap<>();
+            Long hospitalId = Long.valueOf(request.get("hospitalId").toString());
+            String deptName = request.get("deptName").toString();
+            
+            Department createdDepartment = departmentService.createDepartment(hospitalId, deptName);
+            Map<String, Object> response = new HashMap<>();
             response.put("status", "success");
             response.put("message", "진료과가 등록되었습니다.");
+            response.put("department", createdDepartment);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            Map<String, String> response = new HashMap<>();
+            Map<String, Object> response = new HashMap<>();
             response.put("status", "error");
-            response.put("message", "진료과 등록에 실패했습니다.");
+            response.put("message", "진료과 등록에 실패했습니다: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
     @PutMapping("/department/{id}")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> updateDepartment(@PathVariable Long id, @RequestBody Department department) {
+    public ResponseEntity<Map<String, String>> updateDepartment(@PathVariable Long id, @RequestBody Map<String, String> request, HttpSession session) {
+        if (!isAdmin(session)) {
+            return unauthorizedResponse();
+        }
+        
         try {
-            // TODO: DepartmentService에 updateDepartment 메서드 추가 필요
+            String deptName = request.get("deptName");
+            departmentService.updateDepartment(id, deptName);
             Map<String, String> response = new HashMap<>();
             response.put("status", "success");
             response.put("message", "진료과 정보가 업데이트되었습니다.");
@@ -267,16 +382,20 @@ public class AdminController {
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
             response.put("status", "error");
-            response.put("message", "진료과 정보 업데이트에 실패했습니다.");
+            response.put("message", "진료과 정보 업데이트에 실패했습니다: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
     @DeleteMapping("/department/{id}")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> deleteDepartment(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> deleteDepartment(@PathVariable Long id, HttpSession session) {
+        if (!isAdmin(session)) {
+            return unauthorizedResponse();
+        }
+        
         try {
-            // TODO: DepartmentService에 deleteDepartment 메서드 추가 필요
+            departmentService.deleteDepartment(id);
             Map<String, String> response = new HashMap<>();
             response.put("status", "success");
             response.put("message", "진료과가 삭제되었습니다.");
@@ -284,7 +403,7 @@ public class AdminController {
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
             response.put("status", "error");
-            response.put("message", "진료과 삭제에 실패했습니다.");
+            response.put("message", "진료과 삭제에 실패했습니다: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
@@ -338,26 +457,48 @@ public class AdminController {
 
     @PostMapping("/doctor")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> createDoctor(@RequestBody Doctor doctor) {
+    public ResponseEntity<Map<String, Object>> createDoctor(@RequestBody Map<String, Object> request, HttpSession session) {
+        if (!isAdmin(session)) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "error");
+            response.put("message", "관리자 권한이 필요합니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        }
+        
         try {
-            // TODO: DoctorService에 createDoctor 메서드 추가 필요
-            Map<String, String> response = new HashMap<>();
+            Long hospitalId = Long.valueOf(request.get("hospitalId").toString());
+            Long deptId = Long.valueOf(request.get("deptId").toString());
+            String name = request.get("name").toString();
+            String availableTime = request.get("availableTime").toString();
+            
+            Doctor createdDoctor = doctorService.createDoctor(hospitalId, deptId, name, availableTime);
+            Map<String, Object> response = new HashMap<>();
             response.put("status", "success");
             response.put("message", "의사가 등록되었습니다.");
+            response.put("doctor", createdDoctor);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            Map<String, String> response = new HashMap<>();
+            Map<String, Object> response = new HashMap<>();
             response.put("status", "error");
-            response.put("message", "의사 등록에 실패했습니다.");
+            response.put("message", "의사 등록에 실패했습니다: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
     @PutMapping("/doctor/{id}")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> updateDoctor(@PathVariable Long id, @RequestBody Doctor doctor) {
+    public ResponseEntity<Map<String, String>> updateDoctor(@PathVariable Long id, @RequestBody Map<String, Object> request, HttpSession session) {
+        if (!isAdmin(session)) {
+            return unauthorizedResponse();
+        }
+        
         try {
-            // TODO: DoctorService에 updateDoctor 메서드 추가 필요
+            Long hospitalId = Long.valueOf(request.get("hospitalId").toString());
+            Long deptId = Long.valueOf(request.get("deptId").toString());
+            String name = request.get("name").toString();
+            String availableTime = request.get("availableTime").toString();
+            
+            doctorService.updateDoctor(id, hospitalId, deptId, name, availableTime);
             Map<String, String> response = new HashMap<>();
             response.put("status", "success");
             response.put("message", "의사 정보가 업데이트되었습니다.");
@@ -365,16 +506,20 @@ public class AdminController {
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
             response.put("status", "error");
-            response.put("message", "의사 정보 업데이트에 실패했습니다.");
+            response.put("message", "의사 정보 업데이트에 실패했습니다: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
     @DeleteMapping("/doctor/{id}")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> deleteDoctor(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> deleteDoctor(@PathVariable Long id, HttpSession session) {
+        if (!isAdmin(session)) {
+            return unauthorizedResponse();
+        }
+        
         try {
-            // TODO: DoctorService에 deleteDoctor 메서드 추가 필요
+            doctorService.deleteDoctor(id);
             Map<String, String> response = new HashMap<>();
             response.put("status", "success");
             response.put("message", "의사가 삭제되었습니다.");
@@ -382,7 +527,7 @@ public class AdminController {
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
             response.put("status", "error");
-            response.put("message", "의사 삭제에 실패했습니다.");
+            response.put("message", "의사 삭제에 실패했습니다: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
@@ -390,13 +535,20 @@ public class AdminController {
     // 예약 관리
     @GetMapping("/reservations")
     @ResponseBody
-    public ResponseEntity<List<Reservation>> getReservations(HttpSession session) {
+    public ResponseEntity<List<Reservation>> getReservations(
+            @RequestParam(required = false) Long hospitalId,
+            HttpSession session) {
         if (!isAdmin(session)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
         
         try {
-            List<Reservation> reservations = reservationService.getAllReservations();
+            List<Reservation> reservations;
+            if (hospitalId != null) {
+                reservations = reservationService.getReservationsByHospital(hospitalId);
+            } else {
+                reservations = reservationService.getAllReservations();
+            }
             return ResponseEntity.ok(reservations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -429,13 +581,20 @@ public class AdminController {
     // 결제 관리
     @GetMapping("/payments")
     @ResponseBody
-    public ResponseEntity<List<Payment>> getPayments(HttpSession session) {
+    public ResponseEntity<List<Payment>> getPayments(
+            @RequestParam(required = false) Long hospitalId,
+            HttpSession session) {
         if (!isAdmin(session)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
         
         try {
-            List<Payment> payments = paymentService.getAllPayments();
+            List<Payment> payments;
+            if (hospitalId != null) {
+                payments = paymentService.getPaymentsByHospital(hospitalId);
+            } else {
+                payments = paymentService.getAllPayments();
+            }
             return ResponseEntity.ok(payments);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
