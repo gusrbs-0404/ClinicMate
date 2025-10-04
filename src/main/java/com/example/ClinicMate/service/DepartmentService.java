@@ -50,9 +50,9 @@ public class DepartmentService {
         Hospital hospital = hospitalRepository.findById(hospitalId)
                 .orElseThrow(() -> new RuntimeException("병원을 찾을 수 없습니다: " + hospitalId));
         
-        // 중복 체크
-        if (departmentRepository.findByDeptNameContaining(deptName).stream()
-                .anyMatch(dept -> dept.getDeptName().equals(deptName))) {
+        // 같은 병원 내에서 중복 체크
+        List<Department> existingDepartments = departmentRepository.findByHospitalHospitalIdAndDeptName(hospitalId, deptName);
+        if (!existingDepartments.isEmpty()) {
             throw new RuntimeException("이미 존재하는 진료과입니다: " + deptName);
         }
         

@@ -24,4 +24,10 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
     // 모든 진료과 조회 (중복 제거)
     @Query("SELECT DISTINCT d.deptName FROM Department d ORDER BY d.deptName")
     List<String> findAllDistinctDeptNames();
+    
+    // 정확한 진료과명으로 조회
+    List<Department> findByDeptName(String deptName);
+    
+    // 특정 병원에서 정확한 진료과명으로 조회
+    List<Department> findByHospitalHospitalIdAndDeptName(Long hospitalId, String deptName);
 }
