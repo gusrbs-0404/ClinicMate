@@ -41,6 +41,12 @@
                                     <label>가입일:</label>
                                     <span><fmt:formatDate value="${createdAtDate}" pattern="yyyy년 M월 d일 HH:mm:ss" /></span>
                                 </div>
+                                <c:if test="${user.withdrawalStatus == 'WITHDRAWAL_REQUESTED'}">
+                                    <div class="info-item withdrawal-status">
+                                        <label>탈퇴 상태:</label>
+                                        <span class="status-badge status-warning">탈퇴 요청 대기중</span>
+                                    </div>
+                                </c:if>
                             </c:when>
                             <c:otherwise>
                                 <div class="info-item">
@@ -67,7 +73,14 @@
                         </c:choose>
                         <div class="button-group">
                             <button class="btn btn-primary" onclick="editProfile()">정보 수정</button>
-                            <button class="btn btn-danger" onclick="withdrawRequest()">회원 탈퇴</button>
+                            <c:choose>
+                                <c:when test="${user.withdrawalStatus == 'WITHDRAWAL_REQUESTED'}">
+                                    <button class="btn btn-warning" onclick="cancelWithdrawRequest()">탈퇴 요청 취소</button>
+                                </c:when>
+                                <c:otherwise>
+                                    <button class="btn btn-danger" onclick="withdrawRequest()">회원 탈퇴</button>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
                     </div>
                 </div>

@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ClinicMate - 회원 탈퇴</title>
+    <title>ClinicMate - 회원 탈퇴 요청</title>
     <link rel="stylesheet" href="/style/common.css">
     <link rel="stylesheet" href="/style/user.css">
 </head>
@@ -15,7 +15,7 @@
         
         <main class="main-content">
             <div class="withdraw-container">
-                <h2>회원 탈퇴</h2>
+                <h2>회원 탈퇴 요청</h2>
                 
                 <c:if test="${not empty user}">
                     <div class="user-info-box">
@@ -36,12 +36,13 @@
                 </c:if>
                 
                 <div class="warning-box">
-                    <h3>⚠️ 탈퇴 안내</h3>
+                    <h3>⚠️ 탈퇴 요청 안내</h3>
                     <ul>
-                        <li>탈퇴 시 모든 개인정보가 즉시 삭제됩니다.</li>
+                        <li>탈퇴 요청 시 관리자 승인 후 탈퇴가 완료됩니다.</li>
+                        <li>승인 과정은 영업일 기준 1-3일 소요됩니다.</li>
                         <li>진행 중인 예약이 있는 경우 탈퇴가 제한될 수 있습니다.</li>
-                        <li>탈퇴 후 동일한 아이디로 재가입이 불가능합니다.</li>
-                        <li>탈퇴는 되돌릴 수 없으니 신중히 결정해주세요.</li>
+                        <li>탈퇴 승인 후 모든 개인정보가 삭제되며 되돌릴 수 없습니다.</li>
+                        <li>탈퇴 요청은 취소할 수 있습니다.</li>
                     </ul>
                 </div>
                 
@@ -74,12 +75,12 @@
                         <label class="checkbox-label">
                             <input type="checkbox" id="agreeWithdraw" required>
                             <span class="checkmark"></span>
-                            위 내용을 확인했으며, 회원 탈퇴에 동의합니다.
+                            위 내용을 확인했으며, 회원 탈퇴 요청에 동의합니다.
                         </label>
                     </div>
                     
                     <div class="button-group">
-                        <button type="submit" class="btn btn-danger">회원 탈퇴</button>
+                        <button type="submit" class="btn btn-danger">탈퇴 요청</button>
                         <button type="button" class="btn btn-secondary" onclick="goBack()">취소</button>
                     </div>
                 </form>

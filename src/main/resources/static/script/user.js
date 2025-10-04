@@ -831,7 +831,7 @@ const WithdrawHandler = {
         }
 
         // 최종 확인
-        if (!confirm('정말로 회원 탈퇴를 진행하시겠습니까?\n탈퇴 후에는 되돌릴 수 없습니다.')) {
+        if (!confirm('정말로 회원 탈퇴 요청을 진행하시겠습니까?\n관리자 승인 후 탈퇴가 완료됩니다.')) {
             return;
         }
 
@@ -854,23 +854,52 @@ const WithdrawHandler = {
             const result = await response.json();
 
             if (result.success) {
-                Utils.showSuccess('회원 탈퇴가 완료되었습니다.');
+                Utils.showSuccess('탈퇴 요청이 접수되었습니다. 관리자 승인 후 탈퇴가 완료됩니다.');
                 
                 setTimeout(() => {
-                    Utils.removeCurrentUser();
-                    window.location.href = '/';
-                }, 2000);
+                    window.location.href = '/users/me';
+                }, 3000);
             } else {
-                Utils.showErrorMessage(result.message || '회원 탈퇴 중 오류가 발생했습니다.');
+                Utils.showErrorMessage(result.message || '탈퇴 요청 중 오류가 발생했습니다.');
             }
 
         } catch (error) {
-            Utils.showErrorMessage('회원 탈퇴 중 오류가 발생했습니다.');
+            Utils.showErrorMessage('탈퇴 요청 중 오류가 발생했습니다.');
         } finally {
             Utils.hideLoading(submitBtn);
         }
     }
 };
+
+// 탈퇴 요청 취소
+async function cancelWithdrawRequest() {
+    if (!confirm('탈퇴 요청을 취소하시겠습니까?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/users/action/cancel-withdraw', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            Utils.showSuccess('탈퇴 요청이 취소되었습니다.');
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            Utils.showErrorMessage(result.message || '탈퇴 요청 취소 중 오류가 발생했습니다.');
+        }
+
+    } catch (error) {
+        Utils.showErrorMessage('탈퇴 요청 취소 중 오류가 발생했습니다.');
+    }
+}
 
 // 전역 함수들
 function logout() {

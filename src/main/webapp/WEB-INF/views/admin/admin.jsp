@@ -75,6 +75,7 @@
                             <th>이메일</th>
                             <th>전화번호</th>
                             <th>권한</th>
+                            <th>탈퇴상태</th>
                             <th>가입일</th>
                             <th>액션</th>
                         </tr>
@@ -200,7 +201,7 @@
         <div id="reservations-tab" class="tab-content">
             <div class="content-header">
                 <h2>예약 관리</h2>
-                <select id="reservation-hospital-filter">
+                <select id="reservation-hospital-filter" onchange="filterReservationsByHospital(this.value)">
                     <option value="">전체 병원</option>
                 </select>
             </div>
@@ -229,7 +230,7 @@
         <div id="payments-tab" class="tab-content">
             <div class="content-header">
                 <h2>결제 관리</h2>
-                <select id="payment-hospital-filter">
+                <select id="payment-hospital-filter" onchange="filterPaymentsByHospital(this.value)">
                     <option value="">전체 병원</option>
                 </select>
             </div>
@@ -261,7 +262,7 @@
         <div id="statistics-tab" class="tab-content">
             <div class="content-header">
                 <h2>통계 관리</h2>
-                <select id="stats-hospital-filter">
+                <select id="stats-hospital-filter" onchange="filterStatsByHospital(this.value)">
                     <option value="">전체 병원</option>
                 </select>
             </div>

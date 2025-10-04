@@ -35,15 +35,24 @@ function updateHeaderMenu() {
     // 프리뷰 경로가 아닌 경우에만 실제 로그인 상태 확인
     const path = window.location && window.location.pathname ? window.location.pathname : '';
     const isPreview = path.startsWith('/preview');
+    const isAdminPage = path.startsWith('/admin');
     
     // 디버깅을 위한 로그
-    console.log('updateHeaderMenu - path:', path, 'isPreview:', isPreview, 'currentUser:', currentUser);
+    console.log('updateHeaderMenu - path:', path, 'isPreview:', isPreview, 'isAdminPage:', isAdminPage, 'currentUser:', currentUser);
     
     // 로그인 페이지에서는 항상 게스트 메뉴 표시
     if (path === '/users/signin' || path === '/users/signup') {
         guestMenu.style.display = 'flex';
         userMenu.style.display = 'none';
         console.log('헤더: 로그인/회원가입 페이지 - 게스트 메뉴 표시');
+        return;
+    }
+    
+    // 관리자 페이지에서는 항상 사용자 메뉴 표시 (관리자로 로그인된 상태)
+    if (isAdminPage) {
+        guestMenu.style.display = 'none';
+        userMenu.style.display = 'flex';
+        console.log('헤더: 관리자 페이지 - 사용자 메뉴 표시');
         return;
     }
     
