@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -32,4 +33,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // username과 비밀번호로 로그인 확인
     @Query("SELECT u FROM User u WHERE u.username = :username AND u.password = :password")
     Optional<User> findByUsernameAndPassword(@Param("username") String username, @Param("password") String password);
+    
+    // 탈퇴 상태별 사용자 조회
+    List<User> findByWithdrawalStatus(User.WithdrawalStatus withdrawalStatus);
 }

@@ -41,6 +41,11 @@ public class UserService {
             user.setRole(User.UserRole.PATIENT);
         }
         
+        // 기본 탈퇴 상태 설정
+        if (user.getWithdrawalStatus() == null) {
+            user.setWithdrawalStatus(User.WithdrawalStatus.ACTIVE);
+        }
+        
         return userRepository.save(user);
     }
     
@@ -137,5 +142,51 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         user.setRole(role);
         return userRepository.save(user);
+    }
+    
+    // 탈퇴 요청
+    @Transactional
+    public User requestWithdrawal(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        if (user.getWithdrawalStatus() != User.WithdrawalStatus.ACTIVE) {
+            throw new RuntimeException("이미 탈퇴 요청이 처리되었거나 탈퇴된 사용자입니다.");
+        }
+        
+        user.setWithdrawalStatus(User.WithdrawalStatus.WITHDRAWAL_REQUESTED);
+        return userRepository.save(user);
+    }
+    
+    // 탈퇴 승인 (관리자용)
+    @Transactional
+    public void approveWithdrawal(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        if (user.getWithdrawalStatus() != User.WithdrawalStatus.WITHDRAWAL_REQUESTED) {
+            throw new RuntimeException("탈퇴 요청이 없는 사용자입니다.");
+        }
+        
+        userRepository.delete(user);
+    }
+    
+    // 탈퇴 요청 취소
+    @Transactional
+    public User cancelWithdrawalRequest(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        if (user.getWithdrawalStatus() != User.WithdrawalStatus.WITHDRAWAL_REQUESTED) {
+            throw new RuntimeException("탈퇴 요청이 없는 사용자입니다.");
+        }
+        
+        user.setWithdrawalStatus(User.WithdrawalStatus.ACTIVE);
+        return userRepository.save(user);
+    }
+    
+    // 탈퇴 요청된 사용자 목록 조회 (관리자용)
+    public List<User> getUsersWithWithdrawalRequest() {
+        return userRepository.findByWithdrawalStatus(User.WithdrawalStatus.WITHDRAWAL_REQUESTED);
     }
 }

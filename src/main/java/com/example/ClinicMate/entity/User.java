@@ -40,6 +40,10 @@ public class User {
     @Column(name = "role", nullable = false)
     private UserRole role;
     
+    @Enumerated(EnumType.STRING)
+    @Column(name = "withdrawal_status", nullable = false)
+    private WithdrawalStatus withdrawalStatus;
+    
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
@@ -50,5 +54,9 @@ public class User {
     
     public enum UserRole {
         PATIENT, ADMIN
+    }
+    
+    public enum WithdrawalStatus {
+        ACTIVE, WITHDRAWAL_REQUESTED, WITHDRAWN
     }
 }

@@ -217,10 +217,11 @@ public class UsesActionController {
 		}
 	}
 
-            // POST: 회원 탈퇴 신청
+            // POST: 회원 탈퇴 요청
             @PostMapping("/withdraw")
             public ResponseEntity<Map<String, Object>> actionWithdraw(
                     @RequestParam("password") String password,
+                    @RequestParam(value = "reason", required = false) String reason,
                     HttpSession session
             ) {
                 Map<String, Object> response = new HashMap<>();
@@ -238,6 +239,13 @@ public class UsesActionController {
                     User user = userService.findById(userId)
                             .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
+                    // 이미 탈퇴 요청이 있는지 확인
+                    if (user.getWithdrawalStatus() == User.WithdrawalStatus.WITHDRAWAL_REQUESTED) {
+                        response.put("success", false);
+                        response.put("message", "이미 탈퇴 요청이 접수되었습니다. 관리자 승인을 기다려주세요.");
+                        return ResponseEntity.badRequest().body(response);
+                    }
+
                     // 비밀번호 확인 (필수)
                     if (password == null || password.trim().isEmpty()) {
                         response.put("success", false);
@@ -251,23 +259,62 @@ public class UsesActionController {
                         return ResponseEntity.badRequest().body(response);
                     }
 			
-			// 회원 탈퇴 처리 (데이터베이스에서 삭제)
-			userService.deleteUser(userId);
-			
-			// 세션 무효화
-			session.invalidate();
+			// 회원 탈퇴 요청 처리
+			userService.requestWithdrawal(userId);
 			
 			response.put("success", true);
-			response.put("message", "회원 탈퇴가 완료되었습니다.");
+			response.put("message", "탈퇴 요청이 접수되었습니다. 관리자 승인 후 탈퇴가 완료됩니다.");
 			
-			log.info("회원 탈퇴 성공: {}", user.getUsername());
+			log.info("회원 탈퇴 요청 접수: {} (사유: {})", user.getUsername(), reason);
 			return ResponseEntity.ok(response);
 			
 		} catch (Exception e) {
 			response.put("success", false);
 			response.put("message", e.getMessage());
 			
-			log.error("회원 탈퇴 실패: {}", e.getMessage());
+			log.error("회원 탈퇴 요청 실패: {}", e.getMessage());
+			return ResponseEntity.badRequest().body(response);
+		}
+	}
+
+	// POST: 탈퇴 요청 취소
+	@PostMapping("/cancel-withdraw")
+	public ResponseEntity<Map<String, Object>> cancelWithdraw(HttpSession session) {
+		Map<String, Object> response = new HashMap<>();
+
+		try {
+			// 세션에서 사용자 ID 조회
+			Long userId = (Long) session.getAttribute("userId");
+			if (userId == null) {
+				response.put("success", false);
+				response.put("message", "로그인이 필요합니다.");
+				return ResponseEntity.badRequest().body(response);
+			}
+
+			// 사용자 정보 조회
+			User user = userService.findById(userId)
+					.orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+			// 탈퇴 요청 상태인지 확인
+			if (user.getWithdrawalStatus() != User.WithdrawalStatus.WITHDRAWAL_REQUESTED) {
+				response.put("success", false);
+				response.put("message", "취소할 탈퇴 요청이 없습니다.");
+				return ResponseEntity.badRequest().body(response);
+			}
+
+			// 탈퇴 요청 취소
+			userService.cancelWithdrawalRequest(userId);
+
+			response.put("success", true);
+			response.put("message", "탈퇴 요청이 취소되었습니다.");
+
+			log.info("회원 탈퇴 요청 취소: {}", user.getUsername());
+			return ResponseEntity.ok(response);
+
+		} catch (Exception e) {
+			response.put("success", false);
+			response.put("message", e.getMessage());
+			log.error("탈퇴 요청 취소 실패: {}", e.getMessage());
 			return ResponseEntity.badRequest().body(response);
 		}
 	}
