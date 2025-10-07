@@ -35,7 +35,6 @@ public class Department {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hospital_id", nullable = false)
-    @JsonIgnore
     private Hospital hospital;
     
     @Column(name = "dept_name", length = 100, nullable = false, unique = true)

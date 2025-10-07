@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface DepartmentRepository extends JpaRepository<Department, Long> {
@@ -17,8 +18,8 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
     // 진료과명으로 검색
     List<Department> findByDeptNameContaining(String deptName);
     
-    // 특정 병원의 진료과 조회
-    @Query("SELECT d FROM Department d WHERE d.hospital.hospitalId = :hospitalId ORDER BY d.deptName")
+    // 특정 병원의 진료과 조회 (연관 엔티티 포함)
+    @Query("SELECT d FROM Department d JOIN FETCH d.hospital h WHERE d.hospital.hospitalId = :hospitalId ORDER BY d.deptName")
     List<Department> findByHospitalIdOrderByName(@Param("hospitalId") Long hospitalId);
     
     // 모든 진료과 조회 (중복 제거)
@@ -30,4 +31,12 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
     
     // 특정 병원에서 정확한 진료과명으로 조회
     List<Department> findByHospitalHospitalIdAndDeptName(Long hospitalId, String deptName);
+    
+    // 진료과 ID로 조회 (연관 엔티티 포함)
+    @Query("SELECT d FROM Department d JOIN FETCH d.hospital h WHERE d.deptId = :deptId")
+    Optional<Department> findByIdWithHospital(@Param("deptId") Long deptId);
+    
+    // 모든 진료과 조회 (연관 엔티티 포함)
+    @Query("SELECT d FROM Department d JOIN FETCH d.hospital h ORDER BY d.deptName")
+    List<Department> findAllWithHospital();
 }

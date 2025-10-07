@@ -1,15 +1,17 @@
 package com.example.ClinicMate.service;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.ClinicMate.entity.Department;
 import com.example.ClinicMate.entity.Hospital;
 import com.example.ClinicMate.repository.DepartmentRepository;
 import com.example.ClinicMate.repository.HospitalRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -19,14 +21,14 @@ public class DepartmentService {
     private final DepartmentRepository departmentRepository;
     private final HospitalRepository hospitalRepository;
     
-    // 모든 진료과 조회
+    // 모든 진료과 조회 (연관 엔티티 포함)
     public List<Department> getAllDepartments() {
-        return departmentRepository.findAll();
+        return departmentRepository.findAllWithHospital();
     }
     
-    // 진료과 ID로 조회
+    // 진료과 ID로 조회 (연관 엔티티 포함)
     public Optional<Department> getDepartmentById(Long deptId) {
-        return departmentRepository.findById(deptId);
+        return departmentRepository.findByIdWithHospital(deptId);
     }
     
     // 병원별 진료과 조회
