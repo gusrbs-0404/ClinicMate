@@ -27,9 +27,9 @@ public class DoctorService {
         return doctorRepository.findAllWithHospitalAndDepartment();
     }
     
-    // 의사 ID로 조회
+    // 의사 ID로 조회 (연관 엔티티 포함)
     public Optional<Doctor> getDoctorById(Long doctorId) {
-        return doctorRepository.findById(doctorId);
+        return doctorRepository.findByIdWithHospitalAndDepartment(doctorId);
     }
     
     // 병원별 의사 조회

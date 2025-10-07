@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/style/common.css">
     <link rel="stylesheet" href="/style/admin.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/script/common.js"></script>
 </head>
 <body class="admin-page">
     <c:import url="/WEB-INF/views/module/header.jsp" />
@@ -320,6 +321,110 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal()">취소</button>
                 <button class="btn btn-primary" id="modal-save-btn">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 병원 수정 모달 -->
+    <div id="editHospitalModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>병원 정보 수정</h3>
+                <button class="modal-close" onclick="closeEditHospitalModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editHospitalForm">
+                    <input type="hidden" id="editHospitalId" name="hospitalId">
+                    <div class="form-group">
+                        <label for="editHospitalName">병원명</label>
+                        <input type="text" id="editHospitalName" name="hospitalName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editHospitalAddress">주소</label>
+                        <input type="text" id="editHospitalAddress" name="address" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editHospitalPhone">전화번호</label>
+                        <input type="text" id="editHospitalPhone" name="phone" class="form-control" oninput="formatPhoneNumber(this)">
+                    </div>
+                    <div class="form-group">
+                        <label for="editHospitalLat">위도</label>
+                        <input type="number" id="editHospitalLat" name="lat" class="form-control" step="any">
+                    </div>
+                    <div class="form-group">
+                        <label for="editHospitalLng">경도</label>
+                        <input type="number" id="editHospitalLng" name="lng" class="form-control" step="any">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditHospitalModal()">취소</button>
+                <button class="btn btn-primary" onclick="updateHospital()">수정</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 진료과 수정 모달 -->
+    <div id="editDepartmentModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>진료과 정보 수정</h3>
+                <button class="modal-close" onclick="closeEditDepartmentModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editDepartmentForm">
+                    <input type="hidden" id="editDepartmentId" name="deptId">
+                    <input type="hidden" id="editDepartmentHospitalId" name="hospitalId">
+                    <div class="form-group">
+                        <label>병원명</label>
+                        <div id="editDepartmentHospitalName" class="form-control" style="background-color: #f8f9fa; color: #6c757d;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDepartmentName">진료과명</label>
+                        <input type="text" id="editDepartmentName" name="deptName" class="form-control" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditDepartmentModal()">취소</button>
+                <button class="btn btn-primary" onclick="updateDepartment()">수정</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 의사 수정 모달 -->
+    <div id="editDoctorModal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>의사 정보 수정</h3>
+                <button class="modal-close" onclick="closeEditDoctorModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editDoctorForm">
+                    <input type="hidden" id="editDoctorId" name="doctorId">
+                    <input type="hidden" id="editDoctorHospitalId" name="hospitalId">
+                    <input type="hidden" id="editDoctorDeptId" name="deptId">
+                    <div class="form-group">
+                        <label>병원명</label>
+                        <div id="editDoctorHospitalName" class="form-control" style="background-color: #f8f9fa; color: #6c757d;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>진료과명</label>
+                        <div id="editDoctorDeptName" class="form-control" style="background-color: #f8f9fa; color: #6c757d;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDoctorName">의사명</label>
+                        <input type="text" id="editDoctorName" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDoctorAvailableTime">진료시간</label>
+                        <input type="text" id="editDoctorAvailableTime" name="availableTime" class="form-control" placeholder="예: 09:00-17:00" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditDoctorModal()">취소</button>
+                <button class="btn btn-primary" onclick="updateDoctor()">수정</button>
             </div>
         </div>
     </div>

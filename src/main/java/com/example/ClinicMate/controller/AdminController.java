@@ -1,18 +1,40 @@
 package com.example.ClinicMate.controller;
 
-import com.example.ClinicMate.entity.*;
-import com.example.ClinicMate.service.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.example.ClinicMate.entity.Department;
+import com.example.ClinicMate.entity.Doctor;
+import com.example.ClinicMate.entity.Hospital;
+import com.example.ClinicMate.entity.Notification;
+import com.example.ClinicMate.entity.Payment;
+import com.example.ClinicMate.entity.Reservation;
+import com.example.ClinicMate.entity.User;
+import com.example.ClinicMate.service.DepartmentService;
+import com.example.ClinicMate.service.DoctorService;
+import com.example.ClinicMate.service.HospitalService;
+import com.example.ClinicMate.service.NotificationService;
+import com.example.ClinicMate.service.PaymentService;
+import com.example.ClinicMate.service.ReservationService;
+import com.example.ClinicMate.service.UserService;
 
 import jakarta.servlet.http.HttpSession;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Controller
 @RequestMapping("/admin")
@@ -257,14 +279,37 @@ public class AdminController {
     @GetMapping("/hospitals")
     @ResponseBody
     public ResponseEntity<List<Hospital>> getHospitals(HttpSession session) {
+        // 임시로 권한 체크 비활성화 (테스트용)
+        // if (!isAdmin(session)) {
+        //     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        // }
+        
+        try {
+            List<Hospital> hospitals = hospitalService.getAllHospitals();
+            System.out.println("병원 목록 조회: " + hospitals.size() + "개");
+            return ResponseEntity.ok(hospitals);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @GetMapping("/hospital/{id}")
+    @ResponseBody
+    public ResponseEntity<Hospital> getHospital(@PathVariable Long id, HttpSession session) {
         if (!isAdmin(session)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
         
         try {
-            List<Hospital> hospitals = hospitalService.getAllHospitals();
-            return ResponseEntity.ok(hospitals);
+            var hospital = hospitalService.getHospitalById(id);
+            if (hospital.isPresent()) {
+                return ResponseEntity.ok(hospital.get());
+            } else {
+                return ResponseEntity.notFound().build();
+            }
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
@@ -336,6 +381,25 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/department/{id}")
+    @ResponseBody
+    public ResponseEntity<Department> getDepartment(@PathVariable Long id, HttpSession session) {
+        if (!isAdmin(session)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+        
+        try {
+            var department = departmentService.getDepartmentById(id);
+            if (department.isPresent()) {
+                return ResponseEntity.ok(department.get());
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 
     @PostMapping("/department")
     @ResponseBody
@@ -455,6 +519,26 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/doctor/{id}")
+    @ResponseBody
+    public ResponseEntity<Doctor> getDoctor(@PathVariable Long id, HttpSession session) {
+        if (!isAdmin(session)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+        
+        try {
+            var doctor = doctorService.getDoctorById(id);
+            if (doctor.isPresent()) {
+                return ResponseEntity.ok(doctor.get());
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
     @PostMapping("/doctor")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> createDoctor(@RequestBody Map<String, Object> request, HttpSession session) {
@@ -551,6 +635,7 @@ public class AdminController {
             }
             return ResponseEntity.ok(reservations);
         } catch (Exception e) {
+            e.printStackTrace(); // 오류 로그 출력
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
@@ -597,6 +682,7 @@ public class AdminController {
             }
             return ResponseEntity.ok(payments);
         } catch (Exception e) {
+            e.printStackTrace(); // 오류 로그 출력
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }

@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface DoctorRepository extends JpaRepository<Doctor, Long> {
@@ -30,4 +31,8 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
     // 모든 의사 조회 (병원명, 진료과명 포함)
     @Query("SELECT d FROM Doctor d JOIN FETCH d.hospital h JOIN FETCH d.department dept ORDER BY h.hospitalName, dept.deptName, d.name")
     List<Doctor> findAllWithHospitalAndDepartment();
+    
+    // 의사 ID로 조회 (연관 엔티티 포함)
+    @Query("SELECT d FROM Doctor d JOIN FETCH d.hospital h JOIN FETCH d.department dept WHERE d.doctorId = :doctorId")
+    Optional<Doctor> findByIdWithHospitalAndDepartment(@Param("doctorId") Long doctorId);
 }

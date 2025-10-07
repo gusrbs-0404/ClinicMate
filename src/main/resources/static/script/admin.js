@@ -12,10 +12,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 관리자 페이지 초기화
 function initializeAdminPage() {
+    console.log('🚀 관리자 페이지 초기화 시작');
     setupTabNavigation();
     setupSubTabNavigation();
     setupStatsNavigation();
     loadInitialData();
+    console.log('✅ 관리자 페이지 초기화 완료');
 }
 
 // 탭 네비게이션 설정
@@ -88,6 +90,7 @@ function setupStatsNavigation() {
 
 // 초기 데이터 로드
 function loadInitialData() {
+    console.log('📊 초기 데이터 로드 시작');
     loadUsers();
     loadHospitals();
     loadDepartments();
@@ -97,6 +100,7 @@ function loadInitialData() {
     loadNotifications();
     loadStatsChart('monthly');
     loadHospitalFilters();
+    console.log('📊 초기 데이터 로드 완료');
 }
 
 // 탭별 데이터 로드
@@ -210,6 +214,36 @@ async function loadHospitals() {
     }
 }
 
+// 진료과 목록 로드
+async function loadDepartments() {
+    try {
+        const response = await fetch('/admin/departments');
+        const departments = await response.json();
+        
+        const tbody = document.getElementById('departments-table-body');
+        if (tbody) {
+            tbody.innerHTML = '';
+            
+            departments.forEach(dept => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${dept.deptId}</td>
+                    <td>${dept.hospital ? dept.hospital.hospitalName : '-'}</td>
+                    <td>${dept.deptName}</td>
+                    <td>${formatDate(dept.createdAt)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="editDepartment(${dept.deptId})">수정</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteDepartment(${dept.deptId})">삭제</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+    } catch (error) {
+        console.error('진료과 목록 로드 실패:', error);
+        showAlert('진료과 목록을 불러오는데 실패했습니다.', 'danger');
+    }
+}
 
 // 병원 선택 (진료과 관리용)
 async function selectHospitalForDepartment(hospitalId, hospitalName) {
@@ -1437,9 +1471,84 @@ async function createHospital() {
     }
 }
 
-function editHospital(hospitalId) {
-    // 병원 수정 구현
-    showAlert('병원 수정 기능은 추후 구현 예정입니다.', 'info');
+async function editHospital(hospitalId) {
+    try {
+        // 병원 정보 조회
+        const response = await fetch(`/admin/hospital/${hospitalId}`);
+        const hospital = await response.json();
+        
+        if (!response.ok) {
+            throw new Error('병원 정보를 불러오는데 실패했습니다.');
+        }
+        
+        // 모달 폼에 데이터 채우기
+        document.getElementById('editHospitalId').value = hospital.hospitalId;
+        document.getElementById('editHospitalName').value = hospital.hospitalName;
+        document.getElementById('editHospitalAddress').value = hospital.address;
+        document.getElementById('editHospitalPhone').value = hospital.phone || '';
+        document.getElementById('editHospitalLat').value = hospital.lat || '';
+        document.getElementById('editHospitalLng').value = hospital.lng || '';
+        
+        // 수정 모달 표시
+        showEditHospitalModal();
+        
+    } catch (error) {
+        console.error('병원 정보 로드 실패:', error);
+        showAlert('병원 정보를 불러오는데 실패했습니다.', 'danger');
+    }
+}
+
+// 병원 수정 모달 표시
+function showEditHospitalModal() {
+    const modal = document.getElementById('editHospitalModal');
+    if (modal) {
+        modal.style.display = 'block';
+    }
+}
+
+// 병원 수정 모달 닫기
+function closeEditHospitalModal() {
+    const modal = document.getElementById('editHospitalModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// 병원 정보 업데이트
+async function updateHospital() {
+    try {
+        const form = document.getElementById('editHospitalForm');
+        const formData = new FormData(form);
+        const hospitalData = Object.fromEntries(formData.entries());
+        
+        // 숫자 필드 변환
+        if (hospitalData.lat) hospitalData.lat = parseFloat(hospitalData.lat);
+        if (hospitalData.lng) hospitalData.lng = parseFloat(hospitalData.lng);
+        
+        const hospitalId = hospitalData.hospitalId;
+        delete hospitalData.hospitalId; // ID는 URL에 포함되므로 제거
+        
+        const response = await fetch(`/admin/hospital/${hospitalId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(hospitalData)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.status === 'success') {
+            showAlert(result.message, 'success');
+            closeEditHospitalModal();
+            loadHospitals();
+        } else {
+            showAlert(result.message || '병원 정보 업데이트에 실패했습니다.', 'danger');
+        }
+    } catch (error) {
+        console.error('병원 업데이트 실패:', error);
+        showAlert('병원 정보 업데이트에 실패했습니다.', 'danger');
+    }
 }
 
 async function deleteHospital(hospitalId) {
@@ -1545,9 +1654,82 @@ async function createDepartment() {
     }
 }
 
-function editDepartment(deptId) {
-    // 진료과 수정 구현
-    showAlert('진료과 수정 기능은 추후 구현 예정입니다.', 'info');
+async function editDepartment(deptId) {
+    try {
+        // 진료과 정보 조회
+        const response = await fetch(`/admin/department/${deptId}`);
+        const department = await response.json();
+        
+        if (!response.ok) {
+            throw new Error('진료과 정보를 불러오는데 실패했습니다.');
+        }
+        
+        // 모달 폼에 데이터 채우기
+        document.getElementById('editDepartmentId').value = department.deptId;
+        document.getElementById('editDepartmentName').value = department.deptName;
+        document.getElementById('editDepartmentHospitalId').value = department.hospital.hospitalId;
+        document.getElementById('editDepartmentHospitalName').textContent = department.hospital.hospitalName;
+        
+        // 수정 모달 표시
+        showEditDepartmentModal();
+        
+    } catch (error) {
+        console.error('진료과 정보 로드 실패:', error);
+        showAlert('진료과 정보를 불러오는데 실패했습니다.', 'danger');
+    }
+}
+
+// 진료과 수정 모달 표시
+function showEditDepartmentModal() {
+    const modal = document.getElementById('editDepartmentModal');
+    if (modal) {
+        modal.style.display = 'block';
+    }
+}
+
+// 진료과 수정 모달 닫기
+function closeEditDepartmentModal() {
+    const modal = document.getElementById('editDepartmentModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// 진료과 정보 업데이트
+async function updateDepartment() {
+    try {
+        const form = document.getElementById('editDepartmentForm');
+        const formData = new FormData(form);
+        const departmentData = Object.fromEntries(formData.entries());
+        
+        const deptId = departmentData.deptId;
+        delete departmentData.deptId; // ID는 URL에 포함되므로 제거
+        
+        const response = await fetch(`/admin/department/${deptId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(departmentData)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.status === 'success') {
+            showAlert(result.message, 'success');
+            closeEditDepartmentModal();
+            // 선택된 병원의 진료과 목록 새로고침
+            const hospitalId = document.getElementById('editDepartmentHospitalId').value;
+            if (hospitalId) {
+                selectHospitalForDepartment(hospitalId, document.getElementById('editDepartmentHospitalName').textContent);
+            }
+        } else {
+            showAlert(result.message || '진료과 정보 업데이트에 실패했습니다.', 'danger');
+        }
+    } catch (error) {
+        console.error('진료과 업데이트 실패:', error);
+        showAlert('진료과 정보 업데이트에 실패했습니다.', 'danger');
+    }
 }
 
 async function deleteDepartment(deptId) {
@@ -1663,9 +1845,81 @@ async function createDoctor() {
     }
 }
 
-function editDoctor(doctorId) {
-    // 의사 수정 구현
-    showAlert('의사 수정 기능은 추후 구현 예정입니다.', 'info');
+async function editDoctor(doctorId) {
+    try {
+        // 의사 정보 조회
+        const response = await fetch(`/admin/doctor/${doctorId}`);
+        const doctor = await response.json();
+        
+        if (!response.ok) {
+            throw new Error('의사 정보를 불러오는데 실패했습니다.');
+        }
+        
+        // 모달 폼에 데이터 채우기
+        document.getElementById('editDoctorId').value = doctor.doctorId;
+        document.getElementById('editDoctorName').value = doctor.name;
+        document.getElementById('editDoctorAvailableTime').value = doctor.availableTime;
+        document.getElementById('editDoctorHospitalId').value = doctor.hospital.hospitalId;
+        document.getElementById('editDoctorHospitalName').textContent = doctor.hospital.hospitalName;
+        document.getElementById('editDoctorDeptId').value = doctor.department.deptId;
+        document.getElementById('editDoctorDeptName').textContent = doctor.department.deptName;
+        
+        // 수정 모달 표시
+        showEditDoctorModal();
+        
+    } catch (error) {
+        console.error('의사 정보 로드 실패:', error);
+        showAlert('의사 정보를 불러오는데 실패했습니다.', 'danger');
+    }
+}
+
+// 의사 수정 모달 표시
+function showEditDoctorModal() {
+    const modal = document.getElementById('editDoctorModal');
+    if (modal) {
+        modal.style.display = 'block';
+    }
+}
+
+// 의사 수정 모달 닫기
+function closeEditDoctorModal() {
+    const modal = document.getElementById('editDoctorModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// 의사 정보 업데이트
+async function updateDoctor() {
+    try {
+        const form = document.getElementById('editDoctorForm');
+        const formData = new FormData(form);
+        const doctorData = Object.fromEntries(formData.entries());
+        
+        const doctorId = doctorData.doctorId;
+        delete doctorData.doctorId; // ID는 URL에 포함되므로 제거
+        
+        const response = await fetch(`/admin/doctor/${doctorId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(doctorData)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.status === 'success') {
+            showAlert(result.message, 'success');
+            closeEditDoctorModal();
+            loadDoctors();
+        } else {
+            showAlert(result.message || '의사 정보 업데이트에 실패했습니다.', 'danger');
+        }
+    } catch (error) {
+        console.error('의사 업데이트 실패:', error);
+        showAlert('의사 정보 업데이트에 실패했습니다.', 'danger');
+    }
 }
 
 async function deleteDoctor(doctorId) {
@@ -1701,38 +1955,57 @@ function loadFailedNotifications() {
 // 병원 필터 로드
 async function loadHospitalFilters() {
     try {
+        console.log('🏥 병원 필터 로드 시작...');
         const response = await fetch('/admin/hospitals');
+        
+        console.log('병원 API 응답 상태:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const hospitals = await response.json();
+        console.log('로드된 병원 목록:', hospitals);
+        console.log('병원 개수:', hospitals.length);
         
         // 예약 관리 필터
         const reservationFilter = document.getElementById('reservation-hospital-filter');
-        reservationFilter.innerHTML = '<option value="">전체 병원</option>';
-        hospitals.forEach(hospital => {
-            const option = document.createElement('option');
-            option.value = hospital.hospitalId;
-            option.textContent = hospital.hospitalName;
-            reservationFilter.appendChild(option);
-        });
+        if (reservationFilter) {
+            reservationFilter.innerHTML = '<option value="">전체 병원</option>';
+            hospitals.forEach(hospital => {
+                const option = document.createElement('option');
+                option.value = hospital.hospitalId;
+                option.textContent = hospital.hospitalName;
+                reservationFilter.appendChild(option);
+            });
+            console.log('예약 관리 필터 업데이트 완료');
+        }
         
         // 결제 관리 필터
         const paymentFilter = document.getElementById('payment-hospital-filter');
-        paymentFilter.innerHTML = '<option value="">전체 병원</option>';
-        hospitals.forEach(hospital => {
-            const option = document.createElement('option');
-            option.value = hospital.hospitalId;
-            option.textContent = hospital.hospitalName;
-            paymentFilter.appendChild(option);
-        });
+        if (paymentFilter) {
+            paymentFilter.innerHTML = '<option value="">전체 병원</option>';
+            hospitals.forEach(hospital => {
+                const option = document.createElement('option');
+                option.value = hospital.hospitalId;
+                option.textContent = hospital.hospitalName;
+                paymentFilter.appendChild(option);
+            });
+            console.log('결제 관리 필터 업데이트 완료');
+        }
         
         // 통계 관리 필터
         const statsFilter = document.getElementById('stats-hospital-filter');
-        statsFilter.innerHTML = '<option value="">전체 병원</option>';
-        hospitals.forEach(hospital => {
-            const option = document.createElement('option');
-            option.value = hospital.hospitalId;
-            option.textContent = hospital.hospitalName;
-            statsFilter.appendChild(option);
-        });
+        if (statsFilter) {
+            statsFilter.innerHTML = '<option value="">전체 병원</option>';
+            hospitals.forEach(hospital => {
+                const option = document.createElement('option');
+                option.value = hospital.hospitalId;
+                option.textContent = hospital.hospitalName;
+                statsFilter.appendChild(option);
+            });
+            console.log('통계 관리 필터 업데이트 완료');
+        }
     } catch (error) {
         console.error('병원 필터 로드 실패:', error);
     }
@@ -1747,7 +2020,18 @@ async function filterReservationsByHospital(hospitalId) {
         }
         
         const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const reservations = await response.json();
+        
+        // reservations가 배열인지 확인
+        if (!Array.isArray(reservations)) {
+            console.error('예약 데이터가 배열이 아닙니다:', reservations);
+            throw new Error('예약 데이터 형식이 올바르지 않습니다.');
+        }
         
         const tbody = document.getElementById('reservations-table-body');
         tbody.innerHTML = '';
@@ -1787,7 +2071,18 @@ async function filterPaymentsByHospital(hospitalId) {
         }
         
         const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const payments = await response.json();
+        
+        // payments가 배열인지 확인
+        if (!Array.isArray(payments)) {
+            console.error('결제 데이터가 배열이 아닙니다:', payments);
+            throw new Error('결제 데이터 형식이 올바르지 않습니다.');
+        }
         
         const tbody = document.getElementById('payments-table-body');
         tbody.innerHTML = '';
