@@ -98,13 +98,8 @@ public class PaymentService {
     
     @Transactional(readOnly = true)
     public List<Payment> getPaymentsByHospital(Long hospitalId) {
-        // 병원별 결제 조회는 예약을 통해 필터링
-        List<Payment> allPayments = paymentRepository.findAll();
-        return allPayments.stream()
-                .filter(payment -> payment.getReservation() != null && 
-                                 payment.getReservation().getHospital() != null &&
-                                 payment.getReservation().getHospital().getHospitalId().equals(hospitalId))
-                .collect(java.util.stream.Collectors.toList());
+        // 병원별 결제 조회 (연관 엔티티 포함)
+        return paymentRepository.findByHospitalHospitalIdOrderByCreatedAtDesc(hospitalId);
     }
     
     @Transactional
