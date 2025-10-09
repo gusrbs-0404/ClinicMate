@@ -7,10 +7,15 @@ import com.example.ClinicMate.repository.DoctorRepository;
 import com.example.ClinicMate.repository.HospitalRepository;
 import com.example.ClinicMate.repository.DepartmentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -98,5 +103,22 @@ public class DoctorService {
             throw new RuntimeException("의사를 찾을 수 없습니다: " + doctorId);
         }
         doctorRepository.deleteById(doctorId);
+    }
+    
+    // 페이징된 의사 목록 조회
+    public Map<String, Object> getDoctorsWithPaging(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Doctor> doctorPage = doctorRepository.findAllWithHospitalAndDepartment(pageable);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("content", doctorPage.getContent());
+        result.put("totalElements", doctorPage.getTotalElements());
+        result.put("totalPages", doctorPage.getTotalPages());
+        result.put("currentPage", page);
+        result.put("size", size);
+        result.put("hasNext", doctorPage.hasNext());
+        result.put("hasPrevious", doctorPage.hasPrevious());
+        
+        return result;
     }
 }

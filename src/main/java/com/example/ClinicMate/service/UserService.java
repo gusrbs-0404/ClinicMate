@@ -1,8 +1,13 @@
 package com.example.ClinicMate.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -188,5 +193,22 @@ public class UserService {
     // 탈퇴 요청된 사용자 목록 조회 (관리자용)
     public List<User> getUsersWithWithdrawalRequest() {
         return userRepository.findByWithdrawalStatus(User.WithdrawalStatus.WITHDRAWAL_REQUESTED);
+    }
+    
+    // 페이징된 회원 목록 조회
+    public Map<String, Object> getUsersWithPaging(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> userPage = userRepository.findAll(pageable);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("content", userPage.getContent());
+        result.put("totalElements", userPage.getTotalElements());
+        result.put("totalPages", userPage.getTotalPages());
+        result.put("currentPage", page);
+        result.put("size", size);
+        result.put("hasNext", userPage.hasNext());
+        result.put("hasPrevious", userPage.hasPrevious());
+        
+        return result;
     }
 }

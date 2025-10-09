@@ -3,10 +3,15 @@ package com.example.ClinicMate.service;
 import com.example.ClinicMate.entity.Hospital;
 import com.example.ClinicMate.repository.HospitalRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -83,5 +88,22 @@ public class HospitalService {
     // 관리자용 메서드들
     public long getTotalHospitals() {
         return hospitalRepository.count();
+    }
+    
+    // 페이징된 병원 목록 조회
+    public Map<String, Object> getHospitalsWithPaging(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Hospital> hospitalPage = hospitalRepository.findAll(pageable);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("content", hospitalPage.getContent());
+        result.put("totalElements", hospitalPage.getTotalElements());
+        result.put("totalPages", hospitalPage.getTotalPages());
+        result.put("currentPage", page);
+        result.put("size", size);
+        result.put("hasNext", hospitalPage.hasNext());
+        result.put("hasPrevious", hospitalPage.hasPrevious());
+        
+        return result;
     }
 }

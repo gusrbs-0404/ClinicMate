@@ -1,6 +1,8 @@
 package com.example.ClinicMate.repository;
 
 import com.example.ClinicMate.entity.Department;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -39,4 +41,12 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
     // 모든 진료과 조회 (연관 엔티티 포함)
     @Query("SELECT d FROM Department d JOIN FETCH d.hospital h ORDER BY d.deptName")
     List<Department> findAllWithHospital();
+    
+    // 페이징된 진료과 조회 (연관 엔티티 포함)
+    @Query("SELECT d FROM Department d JOIN FETCH d.hospital h ORDER BY d.deptName")
+    Page<Department> findAllWithHospital(Pageable pageable);
+    
+    // 병원별 페이징된 진료과 조회 (연관 엔티티 포함)
+    @Query("SELECT d FROM Department d JOIN FETCH d.hospital h WHERE d.hospital.hospitalId = :hospitalId ORDER BY d.deptName")
+    Page<Department> findByHospitalHospitalIdWithPaging(@Param("hospitalId") Long hospitalId, Pageable pageable);
 }

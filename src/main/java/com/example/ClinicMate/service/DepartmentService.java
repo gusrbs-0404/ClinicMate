@@ -1,8 +1,13 @@
 package com.example.ClinicMate.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,5 +88,39 @@ public class DepartmentService {
             throw new RuntimeException("진료과를 찾을 수 없습니다: " + deptId);
         }
         departmentRepository.deleteById(deptId);
+    }
+    
+    // 페이징된 진료과 목록 조회
+    public Map<String, Object> getDepartmentsWithPaging(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Department> departmentPage = departmentRepository.findAllWithHospital(pageable);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("content", departmentPage.getContent());
+        result.put("totalElements", departmentPage.getTotalElements());
+        result.put("totalPages", departmentPage.getTotalPages());
+        result.put("currentPage", page);
+        result.put("size", size);
+        result.put("hasNext", departmentPage.hasNext());
+        result.put("hasPrevious", departmentPage.hasPrevious());
+        
+        return result;
+    }
+    
+    // 병원별 페이징된 진료과 목록 조회
+    public Map<String, Object> getDepartmentsByHospitalWithPaging(Long hospitalId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Department> departmentPage = departmentRepository.findByHospitalHospitalIdWithPaging(hospitalId, pageable);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("content", departmentPage.getContent());
+        result.put("totalElements", departmentPage.getTotalElements());
+        result.put("totalPages", departmentPage.getTotalPages());
+        result.put("currentPage", page);
+        result.put("size", size);
+        result.put("hasNext", departmentPage.hasNext());
+        result.put("hasPrevious", departmentPage.hasPrevious());
+        
+        return result;
     }
 }

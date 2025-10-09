@@ -4,6 +4,9 @@ import com.example.ClinicMate.entity.*;
 import com.example.ClinicMate.repository.ReservationRepository;
 import com.example.ClinicMate.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -186,5 +189,28 @@ public class ReservationService {
             map.put("count", row[1]);
             return map;
         }).collect(java.util.stream.Collectors.toList());
+    }
+    
+    // 페이징된 예약 목록 조회
+    public Map<String, Object> getReservationsWithPaging(int page, int size, Long hospitalId) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Reservation> reservationPage;
+        
+        if (hospitalId != null) {
+            reservationPage = reservationRepository.findByHospitalHospitalIdWithPaging(hospitalId, pageable);
+        } else {
+            reservationPage = reservationRepository.findAllWithDetailsPaging(pageable);
+        }
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("content", reservationPage.getContent());
+        result.put("totalElements", reservationPage.getTotalElements());
+        result.put("totalPages", reservationPage.getTotalPages());
+        result.put("currentPage", page);
+        result.put("size", size);
+        result.put("hasNext", reservationPage.hasNext());
+        result.put("hasPrevious", reservationPage.hasPrevious());
+        
+        return result;
     }
 }

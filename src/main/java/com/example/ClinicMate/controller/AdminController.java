@@ -108,17 +108,19 @@ public class AdminController {
         return "admin/admin";
     }
 
-    // 회원 관리
+    // 회원 관리 (페이징)
     @GetMapping("/users")
     @ResponseBody
-    public ResponseEntity<?> getUsers(HttpSession session) {
+    public ResponseEntity<?> getUsers(@RequestParam(defaultValue = "0") int page,
+                                    @RequestParam(defaultValue = "10") int size,
+                                    HttpSession session) {
         if (!isAdmin(session)) {
             return unauthorizedResponse();
         }
         
         try {
-            List<User> users = userService.getAllUsers();
-            return ResponseEntity.ok(users);
+            Map<String, Object> result = userService.getUsersWithPaging(page, size);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
@@ -277,19 +279,21 @@ public class AdminController {
         }
     }
 
-    // 병원 관리
+    // 병원 관리 (페이징)
     @GetMapping("/hospitals")
     @ResponseBody
-    public ResponseEntity<List<Hospital>> getHospitals(HttpSession session) {
+    public ResponseEntity<?> getHospitals(@RequestParam(defaultValue = "0") int page,
+                                        @RequestParam(defaultValue = "10") int size,
+                                        HttpSession session) {
         // 임시로 권한 체크 비활성화 (테스트용)
         // if (!isAdmin(session)) {
         //     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         // }
         
         try {
-            List<Hospital> hospitals = hospitalService.getAllHospitals();
-            System.out.println("병원 목록 조회: " + hospitals.size() + "개");
-            return ResponseEntity.ok(hospitals);
+            Map<String, Object> result = hospitalService.getHospitalsWithPaging(page, size);
+            System.out.println("병원 목록 조회: " + result.get("totalElements") + "개");
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -474,17 +478,19 @@ public class AdminController {
         }
     }
 
-    // 진료과 관리
+    // 진료과 관리 (페이징)
     @GetMapping("/departments")
     @ResponseBody
-    public ResponseEntity<List<Department>> getDepartments(HttpSession session) {
+    public ResponseEntity<?> getDepartments(@RequestParam(defaultValue = "0") int page,
+                                          @RequestParam(defaultValue = "10") int size,
+                                          HttpSession session) {
         if (!isAdmin(session)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
         
         try {
-            List<Department> departments = departmentService.getAllDepartments();
-            return ResponseEntity.ok(departments);
+            Map<String, Object> result = departmentService.getDepartmentsWithPaging(page, size);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
@@ -492,14 +498,17 @@ public class AdminController {
     
     @GetMapping("/departments/hospital/{hospitalId}")
     @ResponseBody
-    public ResponseEntity<List<Department>> getDepartmentsByHospital(@PathVariable Long hospitalId, HttpSession session) {
+    public ResponseEntity<?> getDepartmentsByHospital(@PathVariable Long hospitalId,
+                                                   @RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "10") int size,
+                                                   HttpSession session) {
         if (!isAdmin(session)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
         
         try {
-            List<Department> departments = departmentService.getDepartmentsByHospital(hospitalId);
-            return ResponseEntity.ok(departments);
+            Map<String, Object> result = departmentService.getDepartmentsByHospitalWithPaging(hospitalId, page, size);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
@@ -508,14 +517,16 @@ public class AdminController {
     // 의사 관리
     @GetMapping("/doctors")
     @ResponseBody
-    public ResponseEntity<List<Doctor>> getDoctors(HttpSession session) {
+    public ResponseEntity<?> getDoctors(@RequestParam(defaultValue = "0") int page,
+                                      @RequestParam(defaultValue = "10") int size,
+                                      HttpSession session) {
         if (!isAdmin(session)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
         
         try {
-            List<Doctor> doctors = doctorService.getAllDoctors();
-            return ResponseEntity.ok(doctors);
+            Map<String, Object> result = doctorService.getDoctorsWithPaging(page, size);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
@@ -618,10 +629,12 @@ public class AdminController {
         }
     }
 
-    // 예약 관리
+    // 예약 관리 (페이징)
     @GetMapping("/reservations")
     @ResponseBody
-    public ResponseEntity<List<Reservation>> getReservations(
+    public ResponseEntity<?> getReservations(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Long hospitalId,
             HttpSession session) {
         if (!isAdmin(session)) {
@@ -629,13 +642,8 @@ public class AdminController {
         }
         
         try {
-            List<Reservation> reservations;
-            if (hospitalId != null) {
-                reservations = reservationService.getReservationsByHospital(hospitalId);
-            } else {
-                reservations = reservationService.getAllReservations();
-            }
-            return ResponseEntity.ok(reservations);
+            Map<String, Object> result = reservationService.getReservationsWithPaging(page, size, hospitalId);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             e.printStackTrace(); // 오류 로그 출력
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -668,7 +676,9 @@ public class AdminController {
     // 결제 관리
     @GetMapping("/payments")
     @ResponseBody
-    public ResponseEntity<List<Payment>> getPayments(
+    public ResponseEntity<?> getPayments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Long hospitalId,
             HttpSession session) {
         if (!isAdmin(session)) {
@@ -676,13 +686,8 @@ public class AdminController {
         }
         
         try {
-            List<Payment> payments;
-            if (hospitalId != null) {
-                payments = paymentService.getPaymentsByHospital(hospitalId);
-            } else {
-                payments = paymentService.getAllPayments();
-            }
-            return ResponseEntity.ok(payments);
+            Map<String, Object> result = paymentService.getPaymentsWithPaging(page, size, hospitalId);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             e.printStackTrace(); // 오류 로그 출력
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);

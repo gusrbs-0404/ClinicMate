@@ -2,6 +2,8 @@ package com.example.ClinicMate.repository;
 
 import com.example.ClinicMate.entity.Payment;
 import com.example.ClinicMate.entity.Reservation;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -91,4 +93,25 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
            "JOIN p.reservation r " +
            "WHERE p.status = :status AND r.hospital.hospitalId = :hospitalId")
     Long countByStatusAndHospital(@Param("status") Payment.PaymentStatus status, @Param("hospitalId") Long hospitalId);
+    
+    // 페이징된 모든 결제 조회 (예약 정보 포함)
+    @Query("SELECT p FROM Payment p " +
+           "LEFT JOIN FETCH p.reservation r " +
+           "LEFT JOIN FETCH r.user " +
+           "LEFT JOIN FETCH r.hospital " +
+           "LEFT JOIN FETCH r.department " +
+           "LEFT JOIN FETCH r.doctor " +
+           "ORDER BY p.createdAt DESC")
+    Page<Payment> findAllWithReservationPaging(Pageable pageable);
+    
+    // 페이징된 병원별 결제 조회 (예약 정보 포함)
+    @Query("SELECT p FROM Payment p " +
+           "LEFT JOIN FETCH p.reservation r " +
+           "LEFT JOIN FETCH r.user " +
+           "LEFT JOIN FETCH r.hospital " +
+           "LEFT JOIN FETCH r.department " +
+           "LEFT JOIN FETCH r.doctor " +
+           "WHERE r.hospital.hospitalId = :hospitalId " +
+           "ORDER BY p.createdAt DESC")
+    Page<Payment> findByHospitalHospitalIdWithPaging(@Param("hospitalId") Long hospitalId, Pageable pageable);
 }

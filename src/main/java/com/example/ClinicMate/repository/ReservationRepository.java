@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -108,4 +110,23 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
            "GROUP BY d.deptName " +
            "ORDER BY COUNT(r) DESC")
     List<Object[]> getDepartmentReservations(@Param("hospitalId") Long hospitalId);
+    
+    // 페이징된 모든 예약 조회 (연관 엔티티 포함)
+    @Query("SELECT r FROM Reservation r " +
+           "LEFT JOIN FETCH r.user " +
+           "LEFT JOIN FETCH r.hospital " +
+           "LEFT JOIN FETCH r.department " +
+           "LEFT JOIN FETCH r.doctor " +
+           "ORDER BY r.createdAt DESC")
+    Page<Reservation> findAllWithDetailsPaging(Pageable pageable);
+    
+    // 페이징된 병원별 예약 조회 (연관 엔티티 포함)
+    @Query("SELECT r FROM Reservation r " +
+           "LEFT JOIN FETCH r.user " +
+           "LEFT JOIN FETCH r.hospital " +
+           "LEFT JOIN FETCH r.department " +
+           "LEFT JOIN FETCH r.doctor " +
+           "WHERE r.hospital.hospitalId = :hospitalId " +
+           "ORDER BY r.createdAt DESC")
+    Page<Reservation> findByHospitalHospitalIdWithPaging(@Param("hospitalId") Long hospitalId, Pageable pageable);
 }
