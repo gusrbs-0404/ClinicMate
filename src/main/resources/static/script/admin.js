@@ -136,9 +136,6 @@ function loadSubTabData(subTabName) {
         case 'doctors':
             loadDoctors();
             break;
-        case 'schedules':
-            loadDoctorSchedules();
-            break;
     }
 }
 
@@ -151,6 +148,7 @@ async function loadUsers() {
         }
         const users = await response.json();
         
+        // 회원관리에서는 모든 회원 표시 (어드민 포함)
         const tbody = document.getElementById('users-table-body');
         tbody.innerHTML = '';
         
@@ -294,6 +292,8 @@ async function loadDoctors() {
         
         doctors.forEach(doctor => {
             const row = document.createElement('tr');
+            row.style.cursor = 'pointer';
+            row.onclick = () => selectDoctorForSchedule(doctor);
             row.innerHTML = `
                 <td>${doctor.doctorId}</td>
                 <td>${doctor.hospital ? doctor.hospital.hospitalName : '-'}</td>
@@ -301,8 +301,8 @@ async function loadDoctors() {
                 <td>${doctor.name}</td>
                 <td>${doctor.availableTime || '-'}</td>
                 <td>
-                    <button class="btn btn-sm btn-secondary" onclick="editDoctor(${doctor.doctorId})">수정</button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteDoctor(${doctor.doctorId})">삭제</button>
+                    <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); editDoctor(${doctor.doctorId})">수정</button>
+                    <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteDoctor(${doctor.doctorId})">삭제</button>
                 </td>
             `;
             tbody.appendChild(row);
@@ -1290,13 +1290,6 @@ async function editUser(userId) {
                         <input type="tel" id="editPhone" name="phone" class="form-control" value="${user.phone || ''}">
                         <div class="error-message" id="editPhoneError" style="display: none; color: #dc3545; font-size: 0.875rem; margin-top: 5px;"></div>
                     </div>
-                    <div class="form-group">
-                        <label for="editRole">권한</label>
-                        <select id="editRole" name="role" class="form-control" required>
-                            <option value="PATIENT" ${user.role === 'PATIENT' ? 'selected' : ''}>일반 사용자</option>
-                            <option value="ADMIN" ${user.role === 'ADMIN' ? 'selected' : ''}>관리자</option>
-                        </select>
-                    </div>
                 </form>
             `;
             
@@ -1944,8 +1937,305 @@ async function deleteDoctor(doctorId) {
     }
 }
 
-function loadDoctorSchedules() {
-    // 의사 스케줄 로드 구현
+// 의사 선택 시 스케줄 관리 표시
+function selectDoctorForSchedule(doctor) {
+    // 이전 선택된 행의 스타일 제거
+    const previousSelected = document.querySelector('.data-table tbody tr.selected');
+    if (previousSelected) {
+        previousSelected.classList.remove('selected');
+    }
+    
+    // 현재 선택된 행에 스타일 추가
+    event.currentTarget.classList.add('selected');
+    
+    // 선택된 의사 정보 저장
+    window.selectedDoctor = doctor;
+    
+    // 의사 정보 표시
+    document.getElementById('selected-doctor-name').textContent = `${doctor.name} 의사`;
+    document.getElementById('selected-doctor-details-name').textContent = `${doctor.name} 의사`;
+    document.getElementById('selected-doctor-details').innerHTML = `
+        <strong>병원:</strong> ${doctor.hospital.hospitalName}<br>
+        <strong>진료과:</strong> ${doctor.department.deptName}<br>
+        <strong>진료시간:</strong> ${doctor.availableTime}
+    `;
+    
+    // 오늘 날짜로 기본 설정
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('schedule-date-select').value = today;
+    
+    // 스케줄 관리 영역 표시
+    document.getElementById('selected-doctor-schedule').style.display = 'block';
+    
+    // 스케줄 로드
+    loadSelectedDoctorSchedule();
+}
+
+// 선택된 의사의 스케줄 로드
+async function loadSelectedDoctorSchedule() {
+    if (!window.selectedDoctor) {
+        showAlert('의사를 먼저 선택해주세요.', 'warning');
+        return;
+    }
+    
+    const date = document.getElementById('schedule-date-select').value;
+    
+    if (!date) {
+        showAlert('날짜를 선택해주세요.', 'warning');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/schedule/doctor/${window.selectedDoctor.doctorId}?date=${date}`);
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.message);
+        }
+        
+        // 스케줄 표시
+        displaySchedule(data.doctor, data.reservations, date);
+        
+    } catch (error) {
+        console.error('스케줄 로드 실패:', error);
+        showAlert('스케줄을 불러오는데 실패했습니다.', 'danger');
+    }
+}
+
+function displaySchedule(doctor, reservations, date) {
+    const scheduleDisplay = document.getElementById('schedule-display');
+    const scheduleGrid = document.getElementById('schedule-grid');
+    
+    // 진료시간 파싱 (예: "09:00-17:00")
+    const availableTime = doctor.availableTime;
+    const [startTime, endTime] = availableTime.split('-');
+    const [startHour, startMin] = startTime.split(':').map(Number);
+    const [endHour, endMin] = endTime.split(':').map(Number);
+    
+    // 예약된 시간 목록
+    const bookedTimes = reservations.map(r => {
+        const time = new Date(r.resDate).toLocaleTimeString('ko-KR', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: false 
+        });
+        return { time, reservation: r };
+    });
+    
+    // 시간 슬롯 생성 (30분 단위)
+    scheduleGrid.innerHTML = '';
+    const timeSlots = [];
+    
+    for (let hour = startHour; hour < endHour; hour++) {
+        for (let min = 0; min < 60; min += 30) {
+            if (hour === endHour && min >= endMin) break;
+            
+            const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+            const isBooked = bookedTimes.find(bt => bt.time === timeStr);
+            
+            const slot = document.createElement('div');
+            slot.className = `schedule-slot ${isBooked ? 'booked' : 'available'}`;
+            slot.innerHTML = `
+                <div class="time">${timeStr}</div>
+                <div class="status">
+                    ${isBooked ? 
+                        `<span class="patient">${isBooked.reservation.user.name}</span>
+                         <span class="res-status">${isBooked.reservation.status}</span>` : 
+                        '<span class="available-text">예약 가능</span>'
+                    }
+                </div>
+                <div class="actions">
+                    ${isBooked ? 
+                        `<button class="btn btn-sm btn-secondary" onclick="editReservation(${isBooked.reservation.resId})">수정</button>
+                         <button class="btn btn-sm btn-danger" onclick="cancelReservation(${isBooked.reservation.resId})">취소</button>` :
+                        `<button class="btn btn-sm btn-primary" onclick="createReservation('${doctor.doctorId}', '${date}', '${timeStr}')">예약</button>`
+                    }
+                </div>
+            `;
+            
+            scheduleGrid.appendChild(slot);
+        }
+    }
+    
+}
+
+// 관리자 예약 생성
+async function createReservation(doctorId, date, time) {
+    // 환자 선택 모달 표시
+    showPatientSelectionModal(doctorId, date, time);
+}
+
+// 환자 선택 모달 표시
+async function showPatientSelectionModal(doctorId, date, time) {
+    try {
+        // 사용자 목록 로드
+        const response = await fetch('/admin/users');
+        const users = await response.json();
+        
+        // 환자만 필터링
+        const patients = users.filter(user => user.role === 'PATIENT' && user.withdrawalStatus === 'ACTIVE');
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 600px; max-height: 80vh;">
+                <div class="modal-header">
+                    <h3>환자 선택</h3>
+                    <span class="close" onclick="closePatientModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="reservation-info" style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <h4>예약 정보</h4>
+                        <p><strong>날짜:</strong> ${date}</p>
+                        <p><strong>시간:</strong> ${time}</p>
+                        <p><strong>의사:</strong> ${window.selectedDoctor ? window.selectedDoctor.name : '선택된 의사'}</p>
+                    </div>
+                    
+                    <div class="search-section" style="margin-bottom: 1rem;">
+                        <input type="text" id="patient-search" placeholder="환자 이름, 이메일, 전화번호로 검색..." 
+                               style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;"
+                               onkeyup="filterPatients()">
+                    </div>
+                    
+                    <div class="patient-list" id="patient-list">
+                        ${patients.map(patient => `
+                            <div class="patient-item" data-name="${patient.name.toLowerCase()}" data-email="${patient.email.toLowerCase()}" data-phone="${patient.phone}" 
+                                 onclick="selectPatient(${patient.userId}, '${patient.name}', '${doctorId}', '${date}', '${time}')">
+                                <div class="patient-avatar" style="width: 50px; height: 50px; background: #134686; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1rem;">
+                                    ${patient.name.charAt(0)}
+                                </div>
+                                <div class="patient-details">
+                                    <div class="patient-name">${patient.name}</div>
+                                    <div class="patient-info">${patient.email}</div>
+                                    <div class="patient-info">${patient.phone}</div>
+                                </div>
+                                <div class="patient-select-btn">
+                                    <button class="btn btn-primary btn-sm">선택</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    ${patients.length === 0 ? '<p style="text-align: center; color: #666; padding: 2rem;">등록된 환자가 없습니다.</p>' : ''}
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // 모달 외부 클릭 시 닫기
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closePatientModal();
+            }
+        });
+        
+    } catch (error) {
+        console.error('환자 목록 로드 실패:', error);
+        showAlert('환자 목록을 불러오는데 실패했습니다.', 'danger');
+    }
+}
+
+// 환자 선택
+async function selectPatient(userId, userName, doctorId, date, time) {
+    // 확인 메시지
+    if (!confirm(`${userName}님에게 예약을 생성하시겠습니까?\n\n날짜: ${date}\n시간: ${time}`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/admin/schedule/reservation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                doctorId: doctorId,
+                userId: userId,
+                date: date,
+                time: time
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert(`${userName}님의 예약이 성공적으로 생성되었습니다.`, 'success');
+            closePatientModal();
+            loadSelectedDoctorSchedule(); // 스케줄 새로고침
+        } else {
+            throw new Error(data.message);
+        }
+        
+    } catch (error) {
+        console.error('예약 생성 실패:', error);
+        showAlert('예약 생성에 실패했습니다: ' + error.message, 'danger');
+    }
+}
+
+// 환자 검색 필터링
+function filterPatients() {
+    const searchTerm = document.getElementById('patient-search').value.toLowerCase();
+    const patientItems = document.querySelectorAll('.patient-item');
+    
+    patientItems.forEach(item => {
+        const name = item.getAttribute('data-name');
+        const email = item.getAttribute('data-email');
+        const phone = item.getAttribute('data-phone');
+        
+        if (name.includes(searchTerm) || email.includes(searchTerm) || phone.includes(searchTerm)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+// 환자 선택 모달 닫기
+function closePatientModal() {
+    const modal = document.querySelector('.modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// 예약 수정
+function editReservation(reservationId) {
+    // 예약 수정 모달 표시 (구현 예정)
+    showAlert('예약 수정 기능은 구현 예정입니다.', 'info');
+}
+
+// 예약 취소
+async function cancelReservation(reservationId) {
+    if (!confirm('정말로 이 예약을 취소하시겠습니까?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/reservation/${reservationId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                status: '취소'
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            showAlert('예약이 취소되었습니다.', 'success');
+            loadSelectedDoctorSchedule(); // 스케줄 새로고침
+        } else {
+            throw new Error(data.message);
+        }
+        
+    } catch (error) {
+        console.error('예약 취소 실패:', error);
+        showAlert('예약 취소에 실패했습니다: ' + error.message, 'danger');
+    }
 }
 
 function loadFailedNotifications() {
