@@ -86,6 +86,7 @@
                     </tbody>
                 </table>
             </div>
+            <div id="users-pagination" class="pagination-container"></div>
         </div>
 
         <!-- 병원/진료과/의사 관리 탭 -->
@@ -121,6 +122,7 @@
                         </tbody>
                     </table>
                 </div>
+                <div id="hospitals-pagination" class="pagination-container"></div>
                 
                 <!-- 선택된 병원의 진료과 목록 -->
                 <div id="selected-hospital-departments" style="display: none; margin-top: 2rem;">
@@ -142,6 +144,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="departments-pagination" class="pagination-container"></div>
                 </div>
             </div>
 
@@ -169,6 +172,7 @@
                         </tbody>
                     </table>
                 </div>
+                <div id="doctors-pagination" class="pagination-container"></div>
                 
                 <!-- 선택된 의사의 스케줄 관리 -->
                 <div id="selected-doctor-schedule" style="display: none; margin-top: 2rem;">
@@ -227,6 +231,7 @@
                     </tbody>
                 </table>
             </div>
+            <div id="reservations-pagination" class="pagination-container"></div>
         </div>
 
         <!-- 결제 관리 탭 -->
@@ -259,6 +264,7 @@
                     </tbody>
                 </table>
             </div>
+            <div id="payments-pagination" class="pagination-container"></div>
         </div>
 
         <!-- 통계 관리 탭 -->

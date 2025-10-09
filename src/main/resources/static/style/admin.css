@@ -916,3 +916,53 @@
     color: #666;
     margin: 0;
 }
+
+/* 페이징 스타일 */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.pagination {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.pagination button {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #dee2e6;
+    background: white;
+    color: #007bff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pagination button:hover:not(:disabled) {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.pagination button:disabled {
+    background: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+.pagination button.btn-primary {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.pagination-info {
+    color: #6c757d;
+    font-size: 0.9rem;
+}

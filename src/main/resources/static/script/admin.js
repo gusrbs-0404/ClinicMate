@@ -91,12 +91,12 @@ function setupStatsNavigation() {
 // 초기 데이터 로드
 function loadInitialData() {
     console.log('📊 초기 데이터 로드 시작');
-    loadUsers();
-    loadHospitals();
-    loadDepartments();
-    loadDoctors();
-    loadReservations();
-    loadPayments();
+    loadUsers(0);
+    loadHospitals(0);
+    loadDepartments(0);
+    loadDoctors(0);
+    loadReservations(0);
+    loadPayments(0);
     loadNotifications();
     // loadStatsChart('monthly'); // 기존 차트 비활성화
     loadHospitalFilters();
@@ -107,16 +107,16 @@ function loadInitialData() {
 function loadTabData(tabName) {
     switch(tabName) {
         case 'users':
-            loadUsers();
+            loadUsers(0);
             break;
         case 'hospitals':
-            loadHospitals();
+            loadHospitals(0);
             break;
         case 'reservations':
-            loadReservations();
+            loadReservations(0);
             break;
         case 'payments':
-            loadPayments();
+            loadPayments(0);
             break;
         case 'statistics':
             loadStatistics();
@@ -132,29 +132,29 @@ function loadTabData(tabName) {
 function loadSubTabData(subTabName) {
     switch(subTabName) {
         case 'hospitals':
-            loadHospitals();
+            loadHospitals(0);
             break;
         case 'doctors':
-            loadDoctors();
+            loadDoctors(0);
             break;
     }
 }
 
-// 회원 목록 로드
-async function loadUsers() {
+// 회원 목록 로드 (페이징)
+async function loadUsers(page = 0) {
     try {
-        const response = await fetch('/admin/users');
+        const response = await fetch(`/admin/users?page=${page}&size=10`);
         if (!response.ok) {
             throw new Error('서버 응답 오류');
         }
-        const users = await response.json();
+        const result = await response.json();
         
         // 회원관리에서는 모든 회원 표시 (어드민 포함)
         const tbody = document.getElementById('users-table-body');
         tbody.innerHTML = '';
         
-        if (users && users.length > 0) {
-            users.forEach(user => {
+        if (result.content && result.content.length > 0) {
+            result.content.forEach(user => {
                 const row = document.createElement('tr');
                 const withdrawalStatusBadge = getWithdrawalStatusBadge(user.withdrawalStatus);
                 const actionButtons = getActionButtons(user);
@@ -175,68 +175,85 @@ async function loadUsers() {
         } else {
             tbody.innerHTML = '<tr><td colspan="9" class="text-center">등록된 회원이 없습니다.</td></tr>';
         }
+        
+        // 페이징 UI 추가
+        displayPagination('users', result, page);
     } catch (error) {
         console.error('회원 목록 로드 실패:', error);
         showAlert('회원 목록을 불러오는데 실패했습니다.', 'danger');
     }
 }
 
-// 병원 목록 로드
-async function loadHospitals() {
+// 병원 목록 로드 (페이징)
+async function loadHospitals(page = 0) {
     try {
-        const response = await fetch('/admin/hospitals');
-        const hospitals = await response.json();
+        const response = await fetch(`/admin/hospitals?page=${page}&size=10`);
+        const result = await response.json();
         
         const tbody = document.getElementById('hospitals-table-body');
         tbody.innerHTML = '';
         
-        hospitals.forEach(hospital => {
-            const row = document.createElement('tr');
-            row.style.cursor = 'pointer';
-            row.onclick = () => selectHospitalForDepartment(hospital.hospitalId, hospital.hospitalName);
-            row.innerHTML = `
-                <td>${hospital.hospitalId}</td>
-                <td>${hospital.hospitalName}</td>
-                <td>${hospital.address}</td>
-                <td>${hospital.phone || '-'}</td>
-                <td>${formatDate(hospital.createdAt)}</td>
-                <td>
-                    <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); editHospital(${hospital.hospitalId})">수정</button>
-                    <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteHospital(${hospital.hospitalId})">삭제</button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
+        if (result.content && result.content.length > 0) {
+            result.content.forEach(hospital => {
+                const row = document.createElement('tr');
+                row.style.cursor = 'pointer';
+                row.onclick = () => selectHospitalForDepartment(hospital.hospitalId, hospital.hospitalName);
+                row.innerHTML = `
+                    <td>${hospital.hospitalId}</td>
+                    <td>${hospital.hospitalName}</td>
+                    <td>${hospital.address}</td>
+                    <td>${hospital.phone || '-'}</td>
+                    <td>${formatDate(hospital.createdAt)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); editHospital(${hospital.hospitalId})">수정</button>
+                        <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteHospital(${hospital.hospitalId})">삭제</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">등록된 병원이 없습니다.</td></tr>';
+        }
+        
+        // 페이징 UI 추가
+        displayPagination('hospitals', result, page);
     } catch (error) {
         console.error('병원 목록 로드 실패:', error);
         showAlert('병원 목록을 불러오는데 실패했습니다.', 'danger');
     }
 }
 
-// 진료과 목록 로드
-async function loadDepartments() {
+// 진료과 목록 로드 (페이징)
+async function loadDepartments(page = 0) {
     try {
-        const response = await fetch('/admin/departments');
-        const departments = await response.json();
+        const response = await fetch(`/admin/departments?page=${page}&size=10`);
+        const result = await response.json();
         
         const tbody = document.getElementById('departments-table-body');
         if (tbody) {
             tbody.innerHTML = '';
             
-            departments.forEach(dept => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${dept.deptId}</td>
-                    <td>${dept.hospital ? dept.hospital.hospitalName : '-'}</td>
-                    <td>${dept.deptName}</td>
-                    <td>${formatDate(dept.createdAt)}</td>
-                    <td>
-                        <button class="btn btn-sm btn-secondary" onclick="editDepartment(${dept.deptId})">수정</button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteDepartment(${dept.deptId})">삭제</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
+            if (result.content && result.content.length > 0) {
+                result.content.forEach(dept => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${dept.deptId}</td>
+                        <td>${dept.hospital ? dept.hospital.hospitalName : '-'}</td>
+                        <td>${dept.deptName}</td>
+                        <td>${formatDate(dept.createdAt)}</td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="editDepartment(${dept.deptId})">수정</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteDepartment(${dept.deptId})">삭제</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">등록된 진료과가 없습니다.</td></tr>';
+            }
+            
+            // 페이징 UI 추가
+            displayPagination('departments', result, page);
         }
     } catch (error) {
         console.error('진료과 목록 로드 실패:', error);
@@ -247,89 +264,153 @@ async function loadDepartments() {
 // 병원 선택 (진료과 관리용)
 async function selectHospitalForDepartment(hospitalId, hospitalName) {
     try {
+        // 선택된 병원 ID 저장
+        window.selectedHospitalId = hospitalId;
+        
         // 선택된 병원 정보 표시
         document.getElementById('selected-hospital-name').textContent = hospitalName;
         document.getElementById('selected-hospital-departments').style.display = 'block';
         
-        // 해당 병원의 진료과 목록 로드
-        const response = await fetch(`/admin/departments/hospital/${hospitalId}`);
-        const departments = await response.json();
+        // 해당 병원의 진료과 목록 로드 (페이징)
+        const response = await fetch(`/admin/departments/hospital/${hospitalId}?page=0&size=10`);
+        const result = await response.json();
+        const departments = result.content || result;
         
         const tbody = document.getElementById('hospital-departments-table-body');
         tbody.innerHTML = '';
         
-        departments.forEach(dept => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${dept.deptId}</td>
-                <td>${dept.deptName}</td>
-                <td>
-                    <button class="btn btn-sm btn-secondary" onclick="editDepartment(${dept.deptId})">수정</button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteDepartment(${dept.deptId})">삭제</button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
+        if (Array.isArray(departments) && departments.length > 0) {
+            departments.forEach(dept => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${dept.deptId}</td>
+                    <td>${dept.deptName}</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="editDepartment(${dept.deptId})">수정</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteDepartment(${dept.deptId})">삭제</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center">등록된 진료과가 없습니다.</td></tr>';
+        }
+        
+        // 페이징 UI 추가 (선택된 병원의 진료과용)
+        if (result.totalPages && result.totalPages > 1) {
+            displayPagination('departments', result, 0);
+        }
     } catch (error) {
         console.error('진료과 목록 로드 실패:', error);
         showAlert('진료과 목록을 불러오는데 실패했습니다.', 'danger');
     }
 }
 
-// 의사 목록 로드
-async function loadDoctors() {
+// 선택된 병원의 진료과 페이징 로드
+async function loadDepartmentsForSelectedHospital(hospitalId, page = 0) {
     try {
-        const response = await fetch('/admin/doctors');
-        const doctors = await response.json();
+        const response = await fetch(`/admin/departments/hospital/${hospitalId}?page=${page}&size=10`);
+        const result = await response.json();
+        const departments = result.content || result;
+        
+        const tbody = document.getElementById('hospital-departments-table-body');
+        tbody.innerHTML = '';
+        
+        if (Array.isArray(departments) && departments.length > 0) {
+            departments.forEach(dept => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${dept.deptId}</td>
+                    <td>${dept.deptName}</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="editDepartment(${dept.deptId})">수정</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteDepartment(${dept.deptId})">삭제</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center">등록된 진료과가 없습니다.</td></tr>';
+        }
+        
+        // 페이징 UI 추가
+        if (result.totalPages && result.totalPages > 1) {
+            displayPagination('departments', result, page);
+        }
+    } catch (error) {
+        console.error('진료과 목록 로드 실패:', error);
+        showAlert('진료과 목록을 불러오는데 실패했습니다.', 'danger');
+    }
+}
+
+// 선택된 병원 ID 가져오기
+function getSelectedHospitalId() {
+    // 선택된 병원 정보를 저장하는 전역 변수 사용
+    return window.selectedHospitalId || null;
+}
+
+// 의사 목록 로드 (페이징)
+async function loadDoctors(page = 0) {
+    try {
+        const response = await fetch(`/admin/doctors?page=${page}&size=10`);
+        const result = await response.json();
         
         // 디버깅: API 응답 확인
-        console.log('의사 데이터:', doctors);
-        if (doctors.length > 0) {
-            console.log('첫 번째 의사 데이터:', doctors[0]);
+        console.log('의사 데이터:', result);
+        if (result.content && result.content.length > 0) {
+            console.log('첫 번째 의사 데이터:', result.content[0]);
         }
         
         const tbody = document.getElementById('doctors-table-body');
         tbody.innerHTML = '';
         
-        doctors.forEach(doctor => {
-            const row = document.createElement('tr');
-            row.style.cursor = 'pointer';
-            row.onclick = () => selectDoctorForSchedule(doctor);
-            row.innerHTML = `
-                <td>${doctor.doctorId}</td>
-                <td>${doctor.hospital ? doctor.hospital.hospitalName : '-'}</td>
-                <td>${doctor.department ? doctor.department.deptName : '-'}</td>
-                <td>${doctor.name}</td>
-                <td>${doctor.availableTime || '-'}</td>
-                <td>
-                    <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); editDoctor(${doctor.doctorId})">수정</button>
-                    <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteDoctor(${doctor.doctorId})">삭제</button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
+        if (result.content && result.content.length > 0) {
+            result.content.forEach(doctor => {
+                const row = document.createElement('tr');
+                row.style.cursor = 'pointer';
+                row.onclick = () => selectDoctorForSchedule(doctor);
+                row.innerHTML = `
+                    <td>${doctor.doctorId}</td>
+                    <td>${doctor.hospital ? doctor.hospital.hospitalName : '-'}</td>
+                    <td>${doctor.department ? doctor.department.deptName : '-'}</td>
+                    <td>${doctor.name}</td>
+                    <td>${doctor.availableTime || '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); editDoctor(${doctor.doctorId})">수정</button>
+                        <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteDoctor(${doctor.doctorId})">삭제</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">등록된 의사가 없습니다.</td></tr>';
+        }
+        
+        // 페이징 UI 추가
+        displayPagination('doctors', result, page);
     } catch (error) {
         console.error('의사 목록 로드 실패:', error);
         showAlert('의사 목록을 불러오는데 실패했습니다.', 'danger');
     }
 }
 
-// 예약 목록 로드
-async function loadReservations() {
+// 예약 목록 로드 (페이징)
+async function loadReservations(page = 0) {
     try {
-        const response = await fetch('/admin/reservations');
-        const reservations = await response.json();
+        const response = await fetch(`/admin/reservations?page=${page}&size=10`);
+        const result = await response.json();
         
         // 디버깅: API 응답 확인
-        console.log('예약 데이터:', reservations);
-        if (reservations.length > 0) {
-            console.log('첫 번째 예약 데이터:', reservations[0]);
+        console.log('예약 데이터:', result);
+        if (result.content && result.content.length > 0) {
+            console.log('첫 번째 예약 데이터:', result.content[0]);
         }
         
         const tbody = document.getElementById('reservations-table-body');
         tbody.innerHTML = '';
         
-        reservations.forEach(reservation => {
+        if (result.content && result.content.length > 0) {
+            result.content.forEach(reservation => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${reservation.resId}</td>
@@ -348,51 +429,64 @@ async function loadReservations() {
                 </td>
             `;
             tbody.appendChild(row);
-        });
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center">등록된 예약이 없습니다.</td></tr>';
+        }
+        
+        // 페이징 UI 추가
+        displayPagination('reservations', result, page);
     } catch (error) {
         console.error('예약 목록 로드 실패:', error);
         showAlert('예약 목록을 불러오는데 실패했습니다.', 'danger');
     }
 }
 
-// 결제 목록 로드
-async function loadPayments() {
+// 결제 목록 로드 (페이징)
+async function loadPayments(page = 0) {
     try {
-        const response = await fetch('/admin/payments');
-        const payments = await response.json();
+        const response = await fetch(`/admin/payments?page=${page}&size=10`);
+        const result = await response.json();
         
         // 디버깅: API 응답 확인
-        console.log('결제 데이터:', payments);
-        if (payments.length > 0) {
-            console.log('첫 번째 결제 데이터:', payments[0]);
+        console.log('결제 데이터:', result);
+        if (result.content && result.content.length > 0) {
+            console.log('첫 번째 결제 데이터:', result.content[0]);
         }
         
         const tbody = document.getElementById('payments-table-body');
         tbody.innerHTML = '';
         
-        payments.forEach(payment => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${payment.payId}</td>
-                <td>${payment.reservation && payment.reservation.user ? payment.reservation.user.name : '-'}</td>
-                <td>${payment.reservation && payment.reservation.hospital ? payment.reservation.hospital.hospitalName : '-'}</td>
-                <td>${payment.reservation && payment.reservation.doctor ? payment.reservation.doctor.name : '-'}</td>
-                <td>${payment.reservation && payment.reservation.department ? payment.reservation.department.deptName : '-'}</td>
-                <td>${payment.amount ? payment.amount.toLocaleString() + '원' : '-'}</td>
-                <td>${payment.method || '-'}</td>
-                <td>${payment.reservation ? formatDateTime(payment.reservation.resDate) : '-'}</td>
-                <td>${formatDateTime(payment.createdAt)}</td>
-                <td><span class="status-badge ${getPaymentStatusClass(payment.status)}">${payment.status}</span></td>
-                <td>
-                    <select class="form-control" onchange="updatePaymentStatus(${payment.payId}, this.value)">
-                        <option value="대기" ${payment.status === '대기' ? 'selected' : ''}>대기</option>
-                        <option value="완료" ${payment.status === '완료' ? 'selected' : ''}>완료</option>
-                        <option value="취소" ${payment.status === '취소' ? 'selected' : ''}>취소</option>
-                    </select>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
+        if (result.content && result.content.length > 0) {
+            result.content.forEach(payment => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${payment.payId}</td>
+                    <td>${payment.reservation && payment.reservation.user ? payment.reservation.user.name : '-'}</td>
+                    <td>${payment.reservation && payment.reservation.hospital ? payment.reservation.hospital.hospitalName : '-'}</td>
+                    <td>${payment.reservation && payment.reservation.doctor ? payment.reservation.doctor.name : '-'}</td>
+                    <td>${payment.reservation && payment.reservation.department ? payment.reservation.department.deptName : '-'}</td>
+                    <td>${payment.amount ? payment.amount.toLocaleString() + '원' : '-'}</td>
+                    <td>${payment.method || '-'}</td>
+                    <td>${payment.reservation ? formatDateTime(payment.reservation.resDate) : '-'}</td>
+                    <td>${formatDateTime(payment.createdAt)}</td>
+                    <td><span class="status-badge ${getPaymentStatusClass(payment.status)}">${payment.status}</span></td>
+                    <td>
+                        <select class="form-control" onchange="updatePaymentStatus(${payment.payId}, this.value)">
+                            <option value="대기" ${payment.status === '대기' ? 'selected' : ''}>대기</option>
+                            <option value="완료" ${payment.status === '완료' ? 'selected' : ''}>완료</option>
+                            <option value="취소" ${payment.status === '취소' ? 'selected' : ''}>취소</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="11" class="text-center">등록된 결제가 없습니다.</td></tr>';
+        }
+        
+        // 페이징 UI 추가
+        displayPagination('payments', result, page);
     } catch (error) {
         console.error('결제 목록 로드 실패:', error);
         showAlert('결제 목록을 불러오는데 실패했습니다.', 'danger');
@@ -1766,17 +1860,21 @@ async function deleteDepartment(deptId) {
 // 의사 추가용 병원 목록 로드
 async function loadHospitalsForDoctor() {
     try {
-        const response = await fetch('/admin/hospitals');
-        const hospitals = await response.json();
+        const response = await fetch('/admin/hospitals?page=0&size=100'); // 모든 병원을 가져오기 위해 큰 사이즈 사용
+        const result = await response.json();
+        const hospitals = result.content || result; // 페이징 결과 또는 배열
         
         const select = document.getElementById('doctorHospital');
         select.innerHTML = '<option value="">병원을 선택하세요</option>';
-        hospitals.forEach(hospital => {
-            const option = document.createElement('option');
-            option.value = hospital.hospitalId;
-            option.textContent = hospital.hospitalName;
-            select.appendChild(option);
-        });
+        
+        if (Array.isArray(hospitals)) {
+            hospitals.forEach(hospital => {
+                const option = document.createElement('option');
+                option.value = hospital.hospitalId;
+                option.textContent = hospital.hospitalName;
+                select.appendChild(option);
+            });
+        }
     } catch (error) {
         console.error('병원 목록 로드 실패:', error);
     }
@@ -1793,16 +1891,20 @@ async function loadDepartmentsForDoctor() {
     }
     
     try {
-        const response = await fetch(`/admin/departments/hospital/${hospitalId}`);
-        const departments = await response.json();
+        const response = await fetch(`/admin/departments/hospital/${hospitalId}?page=0&size=100`);
+        const result = await response.json();
+        const departments = result.content || result;
         
         deptSelect.innerHTML = '<option value="">진료과를 선택하세요</option>';
-        departments.forEach(dept => {
-            const option = document.createElement('option');
-            option.value = dept.deptId;
-            option.textContent = dept.deptName;
-            deptSelect.appendChild(option);
-        });
+        
+        if (Array.isArray(departments)) {
+            departments.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept.deptId;
+                option.textContent = dept.deptName;
+                deptSelect.appendChild(option);
+            });
+        }
     } catch (error) {
         console.error('진료과 목록 로드 실패:', error);
         deptSelect.innerHTML = '<option value="">진료과 로드 실패</option>';
@@ -2247,7 +2349,7 @@ function loadFailedNotifications() {
 async function loadHospitalFilters() {
     try {
         console.log('🏥 병원 필터 로드 시작...');
-        const response = await fetch('/admin/hospitals');
+        const response = await fetch('/admin/hospitals?page=0&size=100'); // 모든 병원을 가져오기 위해 큰 사이즈 사용
         
         console.log('병원 API 응답 상태:', response.status);
         
@@ -2255,13 +2357,14 @@ async function loadHospitalFilters() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const hospitals = await response.json();
+        const result = await response.json();
+        const hospitals = result.content || result; // 페이징 결과 또는 배열
         console.log('로드된 병원 목록:', hospitals);
-        console.log('병원 개수:', hospitals.length);
+        console.log('병원 개수:', Array.isArray(hospitals) ? hospitals.length : '배열이 아님');
         
         // 예약 관리 필터
         const reservationFilter = document.getElementById('reservation-hospital-filter');
-        if (reservationFilter) {
+        if (reservationFilter && Array.isArray(hospitals)) {
             reservationFilter.innerHTML = '<option value="">전체 병원</option>';
             hospitals.forEach(hospital => {
                 const option = document.createElement('option');
@@ -2274,7 +2377,7 @@ async function loadHospitalFilters() {
         
         // 결제 관리 필터
         const paymentFilter = document.getElementById('payment-hospital-filter');
-        if (paymentFilter) {
+        if (paymentFilter && Array.isArray(hospitals)) {
             paymentFilter.innerHTML = '<option value="">전체 병원</option>';
             hospitals.forEach(hospital => {
                 const option = document.createElement('option');
@@ -2305,9 +2408,9 @@ async function loadHospitalFilters() {
 // 예약을 병원별로 필터링
 async function filterReservationsByHospital(hospitalId) {
     try {
-        let url = '/admin/reservations';
+        let url = '/admin/reservations?page=0&size=10';
         if (hospitalId) {
-            url += `?hospitalId=${hospitalId}`;
+            url += `&hospitalId=${hospitalId}`;
         }
         
         const response = await fetch(url);
@@ -2316,7 +2419,8 @@ async function filterReservationsByHospital(hospitalId) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const reservations = await response.json();
+        const result = await response.json();
+        const reservations = result.content || result;
         
         // reservations가 배열인지 확인
         if (!Array.isArray(reservations)) {
@@ -2356,9 +2460,9 @@ async function filterReservationsByHospital(hospitalId) {
 // 결제를 병원별로 필터링
 async function filterPaymentsByHospital(hospitalId) {
     try {
-        let url = '/admin/payments';
+        let url = '/admin/payments?page=0&size=10';
         if (hospitalId) {
-            url += `?hospitalId=${hospitalId}`;
+            url += `&hospitalId=${hospitalId}`;
         }
         
         const response = await fetch(url);
@@ -2367,7 +2471,8 @@ async function filterPaymentsByHospital(hospitalId) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const payments = await response.json();
+        const result = await response.json();
+        const payments = result.content || result;
         
         // payments가 배열인지 확인
         if (!Array.isArray(payments)) {
@@ -2667,9 +2772,10 @@ function displayPaymentStatistics(data) {
 // 통계용 병원 필터 로드
 async function loadHospitalFilterForStatistics() {
     try {
-        const response = await fetch('/admin/hospitals');
+        const response = await fetch('/admin/hospitals?page=0&size=100'); // 모든 병원을 가져오기 위해 큰 사이즈 사용
         if (response.ok) {
-            const hospitals = await response.json();
+            const result = await response.json();
+            const hospitals = result.content || result; // 페이징 결과 또는 배열
             const filter = document.getElementById('statistics-hospital-filter');
             
             // 기존 옵션 제거 (전체 병원 제외)
@@ -2678,12 +2784,14 @@ async function loadHospitalFilterForStatistics() {
             }
             
             // 병원 옵션 추가
-            hospitals.forEach(hospital => {
-                const option = document.createElement('option');
-                option.value = hospital.hospitalId;
-                option.textContent = hospital.hospitalName;
-                filter.appendChild(option);
-            });
+            if (Array.isArray(hospitals)) {
+                hospitals.forEach(hospital => {
+                    const option = document.createElement('option');
+                    option.value = hospital.hospitalId;
+                    option.textContent = hospital.hospitalName;
+                    filter.appendChild(option);
+                });
+            }
         }
     } catch (error) {
         console.error('통계용 병원 필터 로드 실패:', error);
@@ -2694,4 +2802,68 @@ async function loadHospitalFilterForStatistics() {
 function filterStatisticsByHospital(hospitalId) {
     const hospitalIdValue = hospitalId ? parseInt(hospitalId) : null;
     loadStatistics(hospitalIdValue);
+}
+
+// 페이징 UI 표시 (10개씩 버튼 제한)
+function displayPagination(type, result, currentPage) {
+    const paginationContainer = document.getElementById(`${type}-pagination`);
+    if (!paginationContainer) return;
+    
+    const totalPages = result.totalPages;
+    const hasNext = result.hasNext;
+    const hasPrevious = result.hasPrevious;
+    
+    let paginationHTML = '<div class="pagination">';
+    
+    // 이전 버튼
+    if (hasPrevious) {
+        if (type === 'departments') {
+            // 진료과는 선택된 병원 ID를 사용
+            const selectedHospitalId = getSelectedHospitalId();
+            paginationHTML += `<button class="btn btn-sm btn-outline-primary" onclick="loadDepartmentsForSelectedHospital(${selectedHospitalId}, ${currentPage - 1})">이전</button>`;
+        } else {
+            paginationHTML += `<button class="btn btn-sm btn-outline-primary" onclick="load${type.charAt(0).toUpperCase() + type.slice(1)}(${currentPage - 1})">이전</button>`;
+        }
+    } else {
+        paginationHTML += `<button class="btn btn-sm btn-outline-secondary" disabled>이전</button>`;
+    }
+    
+    // 페이지 번호들 (10개씩 제한)
+    const pageGroup = Math.floor(currentPage / 10); // 현재 페이지 그룹
+    const startPage = pageGroup * 10; // 그룹의 시작 페이지
+    const endPage = Math.min(startPage + 9, totalPages - 1); // 그룹의 끝 페이지 (최대 10개)
+    
+    for (let i = startPage; i <= endPage; i++) {
+        if (i === currentPage) {
+            paginationHTML += `<button class="btn btn-sm btn-primary">${i + 1}</button>`;
+        } else {
+            if (type === 'departments') {
+                // 진료과는 선택된 병원 ID를 사용
+                const selectedHospitalId = getSelectedHospitalId();
+                paginationHTML += `<button class="btn btn-sm btn-outline-primary" onclick="loadDepartmentsForSelectedHospital(${selectedHospitalId}, ${i})">${i + 1}</button>`;
+            } else {
+                paginationHTML += `<button class="btn btn-sm btn-outline-primary" onclick="load${type.charAt(0).toUpperCase() + type.slice(1)}(${i})">${i + 1}</button>`;
+            }
+        }
+    }
+    
+    // 다음 버튼
+    if (hasNext) {
+        if (type === 'departments') {
+            // 진료과는 선택된 병원 ID를 사용
+            const selectedHospitalId = getSelectedHospitalId();
+            paginationHTML += `<button class="btn btn-sm btn-outline-primary" onclick="loadDepartmentsForSelectedHospital(${selectedHospitalId}, ${currentPage + 1})">다음</button>`;
+        } else {
+            paginationHTML += `<button class="btn btn-sm btn-outline-primary" onclick="load${type.charAt(0).toUpperCase() + type.slice(1)}(${currentPage + 1})">다음</button>`;
+        }
+    } else {
+        paginationHTML += `<button class="btn btn-sm btn-outline-secondary" disabled>다음</button>`;
+    }
+    
+    paginationHTML += '</div>';
+    
+    // 총 개수 표시
+    paginationHTML += `<div class="pagination-info">총 ${result.totalElements}개 중 ${(currentPage * 10) + 1}-${Math.min((currentPage + 1) * 10, result.totalElements)}개 표시</div>`;
+    
+    paginationContainer.innerHTML = paginationHTML;
 }
