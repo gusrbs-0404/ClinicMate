@@ -94,8 +94,7 @@
                 <h2>병원/진료과/의사 관리</h2>
                 <div class="sub-nav">
                     <button class="sub-nav-btn active" data-sub-tab="hospitals">병원/진료과 관리</button>
-                    <button class="sub-nav-btn" data-sub-tab="doctors">의사 관리</button>
-                    <button class="sub-nav-btn" data-sub-tab="schedules">스케줄 관리</button>
+                    <button class="sub-nav-btn" data-sub-tab="doctors">의사/스케줄 관리</button>
                 </div>
             </div>
             
@@ -147,10 +146,11 @@
             </div>
 
 
-            <!-- 의사 관리 -->
+            <!-- 의사/스케줄 관리 -->
             <div id="doctors-sub-tab" class="sub-tab-content">
                 <div class="sub-content-header">
                     <button class="btn btn-primary" onclick="showAddDoctorModal()">의사 추가</button>
+                    <p class="info-text">💡 의사 행을 클릭하면 해당 의사의 스케줄 관리가 표시됩니다.</p>
                 </div>
                 <div class="table-container">
                     <table class="data-table">
@@ -169,33 +169,35 @@
                         </tbody>
                     </table>
                 </div>
+                
+                <!-- 선택된 의사의 스케줄 관리 -->
+                <div id="selected-doctor-schedule" style="display: none; margin-top: 2rem;">
+                    <div class="sub-content-header">
+                        <h4 id="selected-doctor-name">선택된 의사</h4>
+                        <div class="schedule-controls">
+                            <div class="form-group">
+                                <label for="schedule-date-select">날짜 선택:</label>
+                                <input type="date" id="schedule-date-select" onchange="loadSelectedDoctorSchedule()">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 선택된 의사 정보 -->
+                    <div id="selected-doctor-info" style="margin: 1rem 0; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                        <h4 id="selected-doctor-details-name"></h4>
+                        <p id="selected-doctor-details"></p>
+                    </div>
+                    
+                    <!-- 스케줄 표시 영역 -->
+                    <div id="schedule-display">
+                        <h4>예약 스케줄</h4>
+                        <div id="schedule-grid" class="schedule-grid">
+                            <!-- 동적으로 생성됨 -->
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- 스케줄 관리 -->
-            <div id="schedules-sub-tab" class="sub-tab-content">
-                <div class="sub-content-header">
-                    <select id="schedule-doctor-select">
-                        <option value="">의사 선택</option>
-                    </select>
-                    <input type="date" id="schedule-date">
-                    <button class="btn btn-primary" onclick="loadDoctorSchedule()">스케줄 조회</button>
-                </div>
-                <div class="table-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>시간</th>
-                                <th>예약자</th>
-                                <th>상태</th>
-                                <th>액션</th>
-                            </tr>
-                        </thead>
-                        <tbody id="schedules-table-body">
-                            <!-- 동적으로 로드됨 -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </div>
 
         <!-- 예약 관리 탭 -->
