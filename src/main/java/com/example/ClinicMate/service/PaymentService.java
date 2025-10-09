@@ -7,7 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -109,5 +111,57 @@ public class PaymentService {
         
         payment.setStatus(status);
         return paymentRepository.save(payment);
+    }
+    
+    // 결제 통계
+    @Transactional(readOnly = true)
+    public Map<String, Object> getPaymentStatistics(Long hospitalId) {
+        Map<String, Object> statistics = new HashMap<>();
+        
+        if (hospitalId == null) {
+            // 전체 병원 통계
+            Long completedAmount = paymentRepository.getCompletedAmount();
+            statistics.put("totalAmount", completedAmount != null ? completedAmount : 0);
+            statistics.put("completedAmount", completedAmount != null ? completedAmount : 0);
+            
+            Long pendingAmount = paymentRepository.getPendingAmount();
+            statistics.put("pendingAmount", pendingAmount != null ? pendingAmount : 0);
+            
+            Long cancelledAmount = paymentRepository.getCancelledAmount();
+            statistics.put("cancelledAmount", cancelledAmount != null ? cancelledAmount : 0);
+            
+            Long totalCount = paymentRepository.count();
+            Long completedCount = paymentRepository.countByStatus(Payment.PaymentStatus.완료);
+            Long pendingCount = paymentRepository.countByStatus(Payment.PaymentStatus.대기);
+            Long cancelledCount = paymentRepository.countByStatus(Payment.PaymentStatus.취소);
+            
+            statistics.put("totalCount", totalCount);
+            statistics.put("completedCount", completedCount);
+            statistics.put("pendingCount", pendingCount);
+            statistics.put("cancelledCount", cancelledCount);
+        } else {
+            // 특정 병원 통계
+            Long completedAmount = paymentRepository.getCompletedAmount(hospitalId);
+            statistics.put("totalAmount", completedAmount != null ? completedAmount : 0);
+            statistics.put("completedAmount", completedAmount != null ? completedAmount : 0);
+            
+            Long pendingAmount = paymentRepository.getPendingAmount(hospitalId);
+            statistics.put("pendingAmount", pendingAmount != null ? pendingAmount : 0);
+            
+            Long cancelledAmount = paymentRepository.getCancelledAmount(hospitalId);
+            statistics.put("cancelledAmount", cancelledAmount != null ? cancelledAmount : 0);
+            
+            Long totalCount = paymentRepository.countByHospital(hospitalId);
+            Long completedCount = paymentRepository.countByStatusAndHospital(Payment.PaymentStatus.완료, hospitalId);
+            Long pendingCount = paymentRepository.countByStatusAndHospital(Payment.PaymentStatus.대기, hospitalId);
+            Long cancelledCount = paymentRepository.countByStatusAndHospital(Payment.PaymentStatus.취소, hospitalId);
+            
+            statistics.put("totalCount", totalCount);
+            statistics.put("completedCount", completedCount);
+            statistics.put("pendingCount", pendingCount);
+            statistics.put("cancelledCount", cancelledCount);
+        }
+        
+        return statistics;
     }
 }

@@ -265,18 +265,55 @@
         <div id="statistics-tab" class="tab-content">
             <div class="content-header">
                 <h2>통계 관리</h2>
-                <select id="stats-hospital-filter" onchange="filterStatsByHospital(this.value)">
-                    <option value="">전체 병원</option>
-                </select>
-            </div>
-            <div class="stats-container">
-                <div class="stats-sidebar">
-                    <button class="stats-btn active" data-stats="monthly">월별 예약 현황</button>
-                    <button class="stats-btn" data-stats="department">진료과별 예약 건수</button>
-                    <button class="stats-btn" data-stats="payment">결제 총 금액</button>
+                <div class="filter-controls">
+                    <select id="statistics-hospital-filter" onchange="filterStatisticsByHospital(this.value)">
+                        <option value="">전체 병원</option>
+                    </select>
                 </div>
-                <div class="stats-chart">
-                    <canvas id="statsChart"></canvas>
+            </div>
+            <div class="statistics-container">
+                <!-- 월별 예약 현황 -->
+                <div class="statistics-section">
+                    <h3>월별 예약 현황</h3>
+                    <div id="monthly-chart-container"></div>
+                </div>
+                
+                <!-- 일별 예약 현황 -->
+                <div class="statistics-section">
+                    <h3>일별 예약 현황</h3>
+                    <div class="date-selector">
+                        <select id="daily-year-select" onchange="loadDailyReservations(this.value, document.getElementById('daily-month-select').value)">
+                            <option value="2025">2025년</option>
+                            <option value="2024">2024년</option>
+                        </select>
+                        <select id="daily-month-select" onchange="loadDailyReservations(document.getElementById('daily-year-select').value, this.value)">
+                            <option value="01">1월</option>
+                            <option value="02">2월</option>
+                            <option value="03">3월</option>
+                            <option value="04">4월</option>
+                            <option value="05">5월</option>
+                            <option value="06">6월</option>
+                            <option value="07">7월</option>
+                            <option value="08">8월</option>
+                            <option value="09">9월</option>
+                            <option value="10">10월</option>
+                            <option value="11">11월</option>
+                            <option value="12">12월</option>
+                        </select>
+                    </div>
+                    <div id="daily-chart-container"></div>
+                </div>
+                
+                <!-- 진료과별 예약 건수 -->
+                <div class="statistics-section">
+                    <h3>진료과별 예약 건수</h3>
+                    <div id="department-chart-container"></div>
+                </div>
+                
+                <!-- 결제 통계 -->
+                <div class="statistics-section">
+                    <h3>결제 통계</h3>
+                    <div id="payment-stats-container"></div>
                 </div>
             </div>
         </div>

@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -147,5 +149,42 @@ public class ReservationService {
             java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         
         return reservationRepository.findByDoctorAndDateRange(doctorId, startDate, endDate);
+    }
+    
+    // 월별 예약 통계
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getMonthlyReservations(String year, Long hospitalId) {
+        List<Object[]> results = reservationRepository.getMonthlyReservations(year, hospitalId);
+        return results.stream().map(row -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("year", row[0]);
+            map.put("month", row[1]);
+            map.put("count", row[2]);
+            return map;
+        }).collect(java.util.stream.Collectors.toList());
+    }
+    
+    // 일별 예약 통계
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getDailyReservations(String year, String month, Long hospitalId) {
+        List<Object[]> results = reservationRepository.getDailyReservations(year, month, hospitalId);
+        return results.stream().map(row -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("day", row[0]);
+            map.put("count", row[1]);
+            return map;
+        }).collect(java.util.stream.Collectors.toList());
+    }
+    
+    // 진료과별 예약 통계
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getDepartmentReservations(Long hospitalId) {
+        List<Object[]> results = reservationRepository.getDepartmentReservations(hospitalId);
+        return results.stream().map(row -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("departmentName", row[0]);
+            map.put("count", row[1]);
+            return map;
+        }).collect(java.util.stream.Collectors.toList());
     }
 }

@@ -45,4 +45,50 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
            "WHERE r.hospital.hospitalId = :hospitalId " +
            "ORDER BY p.createdAt DESC")
     List<Payment> findByHospitalHospitalIdOrderByCreatedAtDesc(@Param("hospitalId") Long hospitalId);
+    
+    // 결제 통계 쿼리들
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p")
+    Long getTotalAmount();
+    
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.status = '완료'")
+    Long getCompletedAmount();
+    
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.status = '대기'")
+    Long getPendingAmount();
+    
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.status = '취소'")
+    Long getCancelledAmount();
+    
+    Long countByStatus(Payment.PaymentStatus status);
+    
+    // 병원별 결제 통계 쿼리들
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p " +
+           "JOIN p.reservation r " +
+           "WHERE r.hospital.hospitalId = :hospitalId")
+    Long getTotalAmount(@Param("hospitalId") Long hospitalId);
+    
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p " +
+           "JOIN p.reservation r " +
+           "WHERE p.status = '완료' AND r.hospital.hospitalId = :hospitalId")
+    Long getCompletedAmount(@Param("hospitalId") Long hospitalId);
+    
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p " +
+           "JOIN p.reservation r " +
+           "WHERE p.status = '대기' AND r.hospital.hospitalId = :hospitalId")
+    Long getPendingAmount(@Param("hospitalId") Long hospitalId);
+    
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p " +
+           "JOIN p.reservation r " +
+           "WHERE p.status = '취소' AND r.hospital.hospitalId = :hospitalId")
+    Long getCancelledAmount(@Param("hospitalId") Long hospitalId);
+    
+    @Query("SELECT COUNT(p) FROM Payment p " +
+           "JOIN p.reservation r " +
+           "WHERE r.hospital.hospitalId = :hospitalId")
+    Long countByHospital(@Param("hospitalId") Long hospitalId);
+    
+    @Query("SELECT COUNT(p) FROM Payment p " +
+           "JOIN p.reservation r " +
+           "WHERE p.status = :status AND r.hospital.hospitalId = :hospitalId")
+    Long countByStatusAndHospital(@Param("status") Payment.PaymentStatus status, @Param("hospitalId") Long hospitalId);
 }

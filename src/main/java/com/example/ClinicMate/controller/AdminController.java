@@ -878,4 +878,85 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
+    // 테스트 API
+    @GetMapping("/admin/test")
+    public ResponseEntity<Map<String, Object>> testApi() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "API 테스트 성공");
+        return ResponseEntity.ok(response);
+    }
+
+    // 통계 API들
+    @GetMapping("/statistics/monthly")
+    public ResponseEntity<Map<String, Object>> getMonthlyReservations(@RequestParam(defaultValue = "2025") String year,
+                                                                     @RequestParam(required = false) Long hospitalId) {
+        try {
+            List<Map<String, Object>> monthlyData = reservationService.getMonthlyReservations(year, hospitalId);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", monthlyData);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "월별 예약 통계 조회 실패: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @GetMapping("/statistics/daily")
+    public ResponseEntity<Map<String, Object>> getDailyReservations(@RequestParam String year, 
+                                                                   @RequestParam String month,
+                                                                   @RequestParam(required = false) Long hospitalId) {
+        try {
+            List<Map<String, Object>> dailyData = reservationService.getDailyReservations(year, month, hospitalId);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", dailyData);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "일별 예약 통계 조회 실패: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @GetMapping("/statistics/department")
+    public ResponseEntity<Map<String, Object>> getDepartmentReservations(@RequestParam(required = false) Long hospitalId) {
+        try {
+            List<Map<String, Object>> departmentData = reservationService.getDepartmentReservations(hospitalId);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", departmentData);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "진료과별 예약 통계 조회 실패: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @GetMapping("/statistics/payment")
+    public ResponseEntity<Map<String, Object>> getPaymentStatistics(@RequestParam(required = false) Long hospitalId) {
+        try {
+            Map<String, Object> paymentData = paymentService.getPaymentStatistics(hospitalId);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", paymentData);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "결제 통계 조회 실패: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
 }

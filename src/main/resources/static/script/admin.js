@@ -98,7 +98,7 @@ function loadInitialData() {
     loadReservations();
     loadPayments();
     loadNotifications();
-    loadStatsChart('monthly');
+    // loadStatsChart('monthly'); // 기존 차트 비활성화
     loadHospitalFilters();
     console.log('📊 초기 데이터 로드 완료');
 }
@@ -119,7 +119,8 @@ function loadTabData(tabName) {
             loadPayments();
             break;
         case 'statistics':
-            loadStatsChart('monthly');
+            loadStatistics();
+            loadHospitalFilterForStatistics();
             break;
         case 'notifications':
             loadNotifications();
@@ -2413,4 +2414,284 @@ async function filterStatsByHospital(hospitalId) {
         const statsType = activeStatsBtn.getAttribute('data-stats');
         await loadStatsChart(statsType, hospitalId);
     }
+}
+
+// 통계 데이터 로드
+async function loadStatistics(hospitalId = null) {
+    try {
+        console.log('📊 통계 데이터 로드 시작', hospitalId ? `(병원 ID: ${hospitalId})` : '(전체)');
+        
+        // 병렬로 모든 통계 로드
+        await Promise.all([
+            loadMonthlyReservations(hospitalId),
+            loadDailyReservations('2025', '01', hospitalId),
+            loadDepartmentReservations(hospitalId),
+            loadPaymentStatistics(hospitalId)
+        ]);
+        
+        console.log('✅ 모든 통계 데이터 로드 완료');
+    } catch (error) {
+        console.error('통계 데이터 로드 실패:', error);
+        showAlert('통계 데이터를 불러오는데 실패했습니다.', 'danger');
+    }
+}
+
+// 월별 예약 현황 로드
+async function loadMonthlyReservations(hospitalId = null) {
+    try {
+        const currentYear = new Date().getFullYear();
+        let url = `/admin/statistics/monthly?year=${currentYear}`;
+        if (hospitalId) {
+            url += `&hospitalId=${hospitalId}`;
+        }
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayMonthlyChart(result.data);
+        } else {
+            console.error('월별 예약 통계 로드 실패:', result.message);
+            showAlert('월별 예약 통계를 불러오는데 실패했습니다.', 'danger');
+        }
+    } catch (error) {
+        console.error('월별 예약 통계 로드 실패:', error);
+        showAlert('월별 예약 통계를 불러오는데 실패했습니다.', 'danger');
+    }
+}
+
+// 일별 예약 현황 로드
+async function loadDailyReservations(year, month, hospitalId = null) {
+    try {
+        let url = `/admin/statistics/daily?year=${year}&month=${month}`;
+        if (hospitalId) {
+            url += `&hospitalId=${hospitalId}`;
+        }
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayDailyChart(result.data);
+        } else {
+            console.error('일별 예약 통계 로드 실패:', result.message);
+            showAlert('일별 예약 통계를 불러오는데 실패했습니다.', 'danger');
+        }
+    } catch (error) {
+        console.error('일별 예약 통계 로드 실패:', error);
+        showAlert('일별 예약 통계를 불러오는데 실패했습니다.', 'danger');
+    }
+}
+
+// 진료과별 예약 건수 로드
+async function loadDepartmentReservations(hospitalId = null) {
+    try {
+        let url = '/admin/statistics/department';
+        if (hospitalId) {
+            url += `?hospitalId=${hospitalId}`;
+        }
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayDepartmentChart(result.data);
+        } else {
+            console.error('진료과별 예약 통계 로드 실패:', result.message);
+            showAlert('진료과별 예약 통계를 불러오는데 실패했습니다.', 'danger');
+        }
+    } catch (error) {
+        console.error('진료과별 예약 통계 로드 실패:', error);
+        showAlert('진료과별 예약 통계를 불러오는데 실패했습니다.', 'danger');
+    }
+}
+
+// 결제 통계 로드
+async function loadPaymentStatistics(hospitalId = null) {
+    try {
+        let url = '/admin/statistics/payment';
+        if (hospitalId) {
+            url += `?hospitalId=${hospitalId}`;
+        }
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayPaymentStatistics(result.data);
+        } else {
+            console.error('결제 통계 로드 실패:', result.message);
+            showAlert('결제 통계를 불러오는데 실패했습니다.', 'danger');
+        }
+    } catch (error) {
+        console.error('결제 통계 로드 실패:', error);
+        showAlert('결제 통계를 불러오는데 실패했습니다.', 'danger');
+    }
+}
+
+// 월별 차트 표시
+function displayMonthlyChart(data) {
+    const container = document.getElementById('monthly-chart-container');
+    if (!container) return;
+    
+    const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+    const counts = new Array(12).fill(0);
+    
+    data.forEach(item => {
+        counts[item.month - 1] = item.count;
+    });
+    
+    container.innerHTML = `
+        <div class="chart-container">
+            <h4>월별 예약 현황</h4>
+            <div class="chart-bars">
+                ${months.map((month, index) => `
+                    <div class="chart-bar">
+                        <div class="bar" style="height: ${Math.max(counts[index] * 10, 20)}px;" data-count="${counts[index]}"></div>
+                        <span class="bar-label">${month}</span>
+                        <span class="bar-value">${counts[index]}건</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+// 일별 차트 표시
+function displayDailyChart(data) {
+    const container = document.getElementById('daily-chart-container');
+    if (!container) return;
+    
+    const days = [];
+    const counts = [];
+    
+    data.forEach(item => {
+        days.push(`${item.day}일`);
+        counts.push(item.count);
+    });
+    
+    container.innerHTML = `
+        <div class="chart-container">
+            <h4>일별 예약 현황</h4>
+            <div class="chart-bars">
+                ${days.map((day, index) => `
+                    <div class="chart-bar">
+                        <div class="bar" style="height: ${Math.max(counts[index] * 10, 20)}px;" data-count="${counts[index]}"></div>
+                        <span class="bar-label">${day}</span>
+                        <span class="bar-value">${counts[index]}건</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+// 진료과별 차트 표시
+function displayDepartmentChart(data) {
+    const container = document.getElementById('department-chart-container');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="chart-container">
+            <h4>진료과별 예약 건수</h4>
+            <div class="department-list">
+                ${data.map(item => `
+                    <div class="department-item">
+                        <span class="department-name">${item.departmentName}</span>
+                        <span class="department-count">${item.count}건</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+// 결제 통계 표시
+function displayPaymentStatistics(data) {
+    const container = document.getElementById('payment-stats-container');
+    if (!container) return;
+    
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('ko-KR').format(amount) + '원';
+    };
+    
+    container.innerHTML = `
+        <div class="payment-stats">
+            <h4>결제 통계</h4>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h5>총 결제 금액</h5>
+                    <p class="stat-value">${formatCurrency(data.totalAmount)}</p>
+                    <p class="stat-count">완료된 결제만</p>
+                </div>
+                <div class="stat-card">
+                    <h5>완료된 결제</h5>
+                    <p class="stat-value">${formatCurrency(data.completedAmount)}</p>
+                    <p class="stat-count">${data.completedCount}건</p>
+                </div>
+                <div class="stat-card">
+                    <h5>대기 중인 결제</h5>
+                    <p class="stat-value">${formatCurrency(data.pendingAmount)}</p>
+                    <p class="stat-count">${data.pendingCount}건</p>
+                </div>
+                <div class="stat-card">
+                    <h5>취소된 결제</h5>
+                    <p class="stat-value">${formatCurrency(data.cancelledAmount)}</p>
+                    <p class="stat-count">${data.cancelledCount}건</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// 통계용 병원 필터 로드
+async function loadHospitalFilterForStatistics() {
+    try {
+        const response = await fetch('/admin/hospitals');
+        if (response.ok) {
+            const hospitals = await response.json();
+            const filter = document.getElementById('statistics-hospital-filter');
+            
+            // 기존 옵션 제거 (전체 병원 제외)
+            while (filter.children.length > 1) {
+                filter.removeChild(filter.lastChild);
+            }
+            
+            // 병원 옵션 추가
+            hospitals.forEach(hospital => {
+                const option = document.createElement('option');
+                option.value = hospital.hospitalId;
+                option.textContent = hospital.hospitalName;
+                filter.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('통계용 병원 필터 로드 실패:', error);
+    }
+}
+
+// 통계 병원별 필터링
+function filterStatisticsByHospital(hospitalId) {
+    const hospitalIdValue = hospitalId ? parseInt(hospitalId) : null;
+    loadStatistics(hospitalIdValue);
 }

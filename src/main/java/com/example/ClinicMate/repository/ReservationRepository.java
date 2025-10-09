@@ -76,4 +76,36 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     List<Reservation> findByDoctorAndDateRange(@Param("doctorId") Long doctorId, 
                                                @Param("startDate") LocalDateTime startDate, 
                                                @Param("endDate") LocalDateTime endDate);
+    
+    // 월별 예약 통계
+    @Query("SELECT FUNCTION('YEAR', r.resDate), " +
+           "FUNCTION('MONTH', r.resDate), " +
+           "COUNT(r) " +
+           "FROM Reservation r " +
+           "WHERE FUNCTION('YEAR', r.resDate) = :year " +
+           "AND (:hospitalId IS NULL OR r.hospital.hospitalId = :hospitalId) " +
+           "GROUP BY FUNCTION('YEAR', r.resDate), FUNCTION('MONTH', r.resDate) " +
+           "ORDER BY FUNCTION('MONTH', r.resDate)")
+    List<Object[]> getMonthlyReservations(@Param("year") String year, @Param("hospitalId") Long hospitalId);
+    
+    // 일별 예약 통계
+    @Query("SELECT FUNCTION('DAY', r.resDate), " +
+           "COUNT(r) " +
+           "FROM Reservation r " +
+           "WHERE FUNCTION('YEAR', r.resDate) = :year " +
+           "AND FUNCTION('MONTH', r.resDate) = :month " +
+           "AND (:hospitalId IS NULL OR r.hospital.hospitalId = :hospitalId) " +
+           "GROUP BY FUNCTION('DAY', r.resDate) " +
+           "ORDER BY FUNCTION('DAY', r.resDate)")
+    List<Object[]> getDailyReservations(@Param("year") String year, @Param("month") String month, @Param("hospitalId") Long hospitalId);
+    
+    // 진료과별 예약 통계
+    @Query("SELECT d.deptName, " +
+           "COUNT(r) " +
+           "FROM Reservation r " +
+           "JOIN r.department d " +
+           "WHERE (:hospitalId IS NULL OR r.hospital.hospitalId = :hospitalId) " +
+           "GROUP BY d.deptName " +
+           "ORDER BY COUNT(r) DESC")
+    List<Object[]> getDepartmentReservations(@Param("hospitalId") Long hospitalId);
 }
