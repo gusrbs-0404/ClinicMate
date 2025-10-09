@@ -1,5 +1,7 @@
 package com.example.ClinicMate.controller;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -779,6 +781,101 @@ public class AdminController {
             return ResponseEntity.ok(mockData);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    // 스케줄 관리
+    @GetMapping("/schedule/doctor/{doctorId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getDoctorSchedule(
+            @PathVariable Long doctorId,
+            @RequestParam String date,
+            HttpSession session) {
+        if (!isAdmin(session)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+        
+        try {
+            // 의사 정보 조회
+            var doctor = doctorService.getDoctorById(doctorId);
+            if (!doctor.isPresent()) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "의사를 찾을 수 없습니다.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+            
+            // 해당 날짜의 예약 목록 조회
+            List<Reservation> reservations = reservationService.getReservationsByDoctorAndDate(doctorId, date);
+            
+            // 의사 정보와 예약 목록 반환
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("doctor", doctor.get());
+            response.put("reservations", reservations);
+            response.put("date", date);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "스케줄 조회 실패: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @PostMapping("/schedule/reservation")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> createAdminReservation(
+            @RequestBody Map<String, Object> request,
+            HttpSession session) {
+        if (!isAdmin(session)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+        
+        try {
+            Long doctorId = Long.valueOf(request.get("doctorId").toString());
+            Long userId = Long.valueOf(request.get("userId").toString());
+            String date = request.get("date").toString();
+            String time = request.get("time").toString();
+            
+            // 의사 정보로부터 병원, 진료과 정보 가져오기
+            var doctor = doctorService.getDoctorById(doctorId);
+            if (!doctor.isPresent()) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "의사를 찾을 수 없습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            Doctor doctorEntity = doctor.get();
+            Long hospitalId = doctorEntity.getHospital().getHospitalId();
+            Long deptId = doctorEntity.getDepartment().getDeptId();
+            
+            // 날짜와 시간을 합쳐서 LocalDateTime 생성
+            String dateTimeStr = date + " " + time + ":00";
+            LocalDateTime resDateTime = LocalDateTime.parse(dateTimeStr, 
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            
+            // 예약 생성
+            Reservation reservation = reservationService.createReservation(
+                userId, hospitalId, doctorId, deptId, resDateTime);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "예약이 성공적으로 생성되었습니다.");
+            response.put("reservation", reservation);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "예약 생성 실패: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 }

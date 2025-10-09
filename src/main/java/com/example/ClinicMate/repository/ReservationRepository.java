@@ -63,4 +63,17 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
            "LEFT JOIN FETCH r.doctor " +
            "ORDER BY r.createdAt DESC")
     List<Reservation> findAllWithDetailsOrderByCreatedAtDesc();
+    
+    // 특정 의사의 특정 날짜 범위 예약 조회 (연관 엔티티 포함)
+    @Query("SELECT r FROM Reservation r " +
+           "LEFT JOIN FETCH r.user " +
+           "LEFT JOIN FETCH r.hospital " +
+           "LEFT JOIN FETCH r.department " +
+           "LEFT JOIN FETCH r.doctor " +
+           "WHERE r.doctor.doctorId = :doctorId " +
+           "AND r.resDate BETWEEN :startDate AND :endDate " +
+           "ORDER BY r.resDate ASC")
+    List<Reservation> findByDoctorAndDateRange(@Param("doctorId") Long doctorId, 
+                                               @Param("startDate") LocalDateTime startDate, 
+                                               @Param("endDate") LocalDateTime endDate);
 }

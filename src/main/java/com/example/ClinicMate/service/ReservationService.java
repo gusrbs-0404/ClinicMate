@@ -137,4 +137,15 @@ public class ReservationService {
     public List<Reservation> getReservationsByHospital(Long hospitalId) {
         return reservationRepository.findByHospitalHospitalIdOrderByResDateAsc(hospitalId);
     }
+    
+    // 특정 의사의 특정 날짜 예약 목록 조회
+    @Transactional(readOnly = true)
+    public List<Reservation> getReservationsByDoctorAndDate(Long doctorId, String date) {
+        LocalDateTime startDate = LocalDateTime.parse(date + " 00:00:00", 
+            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime endDate = LocalDateTime.parse(date + " 23:59:59", 
+            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        
+        return reservationRepository.findByDoctorAndDateRange(doctorId, startDate, endDate);
+    }
 }
