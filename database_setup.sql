@@ -79,11 +79,19 @@ CREATE TABLE IF NOT EXISTS PAYMENT (
 -- 7. NOTIFICATION 테이블 생성 (알림 정보)
 CREATE TABLE IF NOT EXISTS NOTIFICATION (
     noti_id INT AUTO_INCREMENT PRIMARY KEY,
-    res_id INT NOT NULL,
-    type ENUM('예약확정', '예약취소') NOT NULL,
+    user_id INT,
+    res_id INT,
+    pay_id INT,
+    type ENUM('회원가입', '예약완료', '예약취소', '결제완료', '결제취소', '탈퇴신청', '탈퇴승인', '탈퇴취소', '관리자_예약취소', '관리자_결제취소', '관리자_탈퇴신청', '관리자_탈퇴취소') NOT NULL,
     recipient VARCHAR(100) NOT NULL,
+    recipient_type ENUM('USER', 'ADMIN') DEFAULT 'USER',
+    subject VARCHAR(200),
+    content TEXT,
     status ENUM('성공', '실패') DEFAULT '성공',
+    error_message TEXT,
     sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     
-    FOREIGN KEY (res_id) REFERENCES RESERVATION(res_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES USER(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (res_id) REFERENCES RESERVATION(res_id) ON DELETE CASCADE,
+    FOREIGN KEY (pay_id) REFERENCES PAYMENT(pay_id) ON DELETE CASCADE
 );

@@ -1,10 +1,19 @@
 package com.example.ClinicMate.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "NOTIFICATION")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Notification {
     
     @Id
@@ -12,8 +21,14 @@ public class Notification {
     @Column(name = "noti_id")
     private Long notiId;
     
-    @Column(name = "res_id", nullable = false)
+    @Column(name = "user_id")
+    private Long userId;
+    
+    @Column(name = "res_id")
     private Long resId;
+    
+    @Column(name = "pay_id")
+    private Long payId;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
@@ -23,76 +38,34 @@ public class Notification {
     private String recipient;
     
     @Enumerated(EnumType.STRING)
+    @Column(name = "recipient_type")
+    private RecipientType recipientType = RecipientType.USER;
+    
+    @Column(name = "subject", length = 200)
+    private String subject;
+    
+    @Column(name = "content", columnDefinition = "TEXT")
+    private String content;
+    
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private NotificationStatus status = NotificationStatus.성공;
+    
+    @Column(name = "error_message", columnDefinition = "TEXT")
+    private String errorMessage;
     
     @Column(name = "sent_at")
     private LocalDateTime sentAt;
     
-    // 생성자
-    public Notification() {
-        this.sentAt = LocalDateTime.now();
-    }
-    
-    public Notification(Long resId, NotificationType type, String recipient) {
-        this();
-        this.resId = resId;
-        this.type = type;
-        this.recipient = recipient;
-    }
-    
-    // Getters and Setters
-    public Long getNotiId() {
-        return notiId;
-    }
-    
-    public void setNotiId(Long notiId) {
-        this.notiId = notiId;
-    }
-    
-    public Long getResId() {
-        return resId;
-    }
-    
-    public void setResId(Long resId) {
-        this.resId = resId;
-    }
-    
-    public NotificationType getType() {
-        return type;
-    }
-    
-    public void setType(NotificationType type) {
-        this.type = type;
-    }
-    
-    public String getRecipient() {
-        return recipient;
-    }
-    
-    public void setRecipient(String recipient) {
-        this.recipient = recipient;
-    }
-    
-    public NotificationStatus getStatus() {
-        return status;
-    }
-    
-    public void setStatus(NotificationStatus status) {
-        this.status = status;
-    }
-    
-    public LocalDateTime getSentAt() {
-        return sentAt;
-    }
-    
-    public void setSentAt(LocalDateTime sentAt) {
-        this.sentAt = sentAt;
-    }
-    
     // Enum 정의
     public enum NotificationType {
-        예약확정, 예약취소
+        회원가입, 예약완료, 예약취소, 결제완료, 결제취소, 
+        탈퇴신청, 탈퇴승인, 탈퇴취소, 
+        관리자_예약취소, 관리자_결제취소, 관리자_탈퇴신청, 관리자_탈퇴취소
+    }
+    
+    public enum RecipientType {
+        USER, ADMIN
     }
     
     public enum NotificationStatus {
