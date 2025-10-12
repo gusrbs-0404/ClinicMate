@@ -493,16 +493,29 @@ async function loadPayments(page = 0) {
     }
 }
 
-// 알림 목록 로드
-async function loadNotifications() {
+// 현재 알림 페이지 추적
+let currentNotificationPage = 0;
+
+// 알림 목록 로드 (페이징)
+async function loadNotifications(page = 0) {
+    currentNotificationPage = page;
     try {
-        const response = await fetch('/admin/notifications');
-        const notifications = await response.json();
+        const response = await fetch(`/admin/notifications?page=${page}&size=10`);
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || '알림 목록을 불러오는데 실패했습니다.');
+        }
+        
+        const notifications = result.content || result;
+        const totalPages = result.totalPages || 0;
+        const totalElements = result.totalElements || 0;
         
         const tbody = document.getElementById('notifications-table-body');
         tbody.innerHTML = '';
         
-        notifications.forEach(notification => {
+        if (Array.isArray(notifications)) {
+            notifications.forEach(notification => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${notification.notiId}</td>
@@ -519,7 +532,14 @@ async function loadNotifications() {
                 </td>
             `;
             tbody.appendChild(row);
-        });
+            });
+        } else {
+            console.warn('알림 데이터가 배열이 아닙니다:', notifications);
+        }
+        
+        // 페이징 표시
+        displayPagination('notifications', { totalPages, hasNext: page < totalPages - 1, hasPrevious: page > 0 }, page);
+        
     } catch (error) {
         console.error('알림 목록 로드 실패:', error);
         showAlert('알림 목록을 불러오는데 실패했습니다.', 'danger');
@@ -695,7 +715,7 @@ async function resendNotification(notiId) {
         
         if (response.ok && result.status === 'success') {
             showAlert(result.message, 'success');
-            loadNotifications();
+            loadNotifications(currentNotificationPage);
         } else {
             showAlert(result.message || '알림 재발송에 실패했습니다.', 'danger');
         }
@@ -2822,7 +2842,8 @@ function displayPagination(type, result, currentPage) {
             const selectedHospitalId = getSelectedHospitalId();
             paginationHTML += `<button class="btn btn-sm btn-outline-primary" onclick="loadDepartmentsForSelectedHospital(${selectedHospitalId}, ${currentPage - 1})">이전</button>`;
         } else {
-            paginationHTML += `<button class="btn btn-sm btn-outline-primary" onclick="load${type.charAt(0).toUpperCase() + type.slice(1)}(${currentPage - 1})">이전</button>`;
+            const functionName = type === 'notifications' ? 'loadNotifications' : `load${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            paginationHTML += `<button class="btn btn-sm btn-outline-primary" onclick="${functionName}(${currentPage - 1})">이전</button>`;
         }
     } else {
         paginationHTML += `<button class="btn btn-sm btn-outline-secondary" disabled>이전</button>`;
@@ -2842,7 +2863,8 @@ function displayPagination(type, result, currentPage) {
                 const selectedHospitalId = getSelectedHospitalId();
                 paginationHTML += `<button class="btn btn-sm btn-outline-primary" onclick="loadDepartmentsForSelectedHospital(${selectedHospitalId}, ${i})">${i + 1}</button>`;
             } else {
-                paginationHTML += `<button class="btn btn-sm btn-outline-primary" onclick="load${type.charAt(0).toUpperCase() + type.slice(1)}(${i})">${i + 1}</button>`;
+                const functionName = type === 'notifications' ? 'loadNotifications' : `load${type.charAt(0).toUpperCase() + type.slice(1)}`;
+                paginationHTML += `<button class="btn btn-sm btn-outline-primary" onclick="${functionName}(${i})">${i + 1}</button>`;
             }
         }
     }
@@ -2854,7 +2876,8 @@ function displayPagination(type, result, currentPage) {
             const selectedHospitalId = getSelectedHospitalId();
             paginationHTML += `<button class="btn btn-sm btn-outline-primary" onclick="loadDepartmentsForSelectedHospital(${selectedHospitalId}, ${currentPage + 1})">다음</button>`;
         } else {
-            paginationHTML += `<button class="btn btn-sm btn-outline-primary" onclick="load${type.charAt(0).toUpperCase() + type.slice(1)}(${currentPage + 1})">다음</button>`;
+            const functionName = type === 'notifications' ? 'loadNotifications' : `load${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            paginationHTML += `<button class="btn btn-sm btn-outline-primary" onclick="${functionName}(${currentPage + 1})">다음</button>`;
         }
     } else {
         paginationHTML += `<button class="btn btn-sm btn-outline-secondary" disabled>다음</button>`;

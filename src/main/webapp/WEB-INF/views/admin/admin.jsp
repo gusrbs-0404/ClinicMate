@@ -348,6 +348,7 @@
                     </tbody>
                 </table>
             </div>
+            <div id="notifications-pagination" class="pagination-container"></div>
         </div>
     </main>
 
