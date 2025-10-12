@@ -717,10 +717,10 @@ public class AdminController {
         }
     }
 
-    // 알림 관리
-    @GetMapping("/notifications")
+    // 알림 관리 (페이징 없이)
+    @GetMapping("/notifications/all")
     @ResponseBody
-    public ResponseEntity<List<Notification>> getNotifications() {
+    public ResponseEntity<List<Notification>> getAllNotifications() {
         try {
             List<Notification> notifications = notificationService.getAllNotifications();
             return ResponseEntity.ok(notifications);
@@ -962,6 +962,116 @@ public class AdminController {
             response.put("success", false);
             response.put("message", "결제 통계 조회 실패: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    // =====================
+    // 알림 관리 API
+    // =====================
+    
+    // 모든 알림 조회 (페이징)
+    @GetMapping("/notifications")
+    @ResponseBody
+    public ResponseEntity<?> getNotifications(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            HttpSession session) {
+        if (!isAdmin(session)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+        
+        try {
+            Map<String, Object> result = notificationService.getAllNotificationsWithPaging(page, size);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+    
+    // 실패한 알림만 조회 (페이징)
+    @GetMapping("/notifications/failed")
+    @ResponseBody
+    public ResponseEntity<?> getFailedNotifications(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            HttpSession session) {
+        if (!isAdmin(session)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+        
+        try {
+            Map<String, Object> result = notificationService.getFailedNotificationsWithPaging(page, size);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+    
+    // 알림 통계 조회
+    @GetMapping("/notifications/statistics")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getNotificationStatistics(HttpSession session) {
+        if (!isAdmin(session)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+        
+        try {
+            Map<String, Object> statistics = notificationService.getNotificationStatistics();
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", statistics);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "알림 통계 조회 실패: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    // 알림 삭제
+    @DeleteMapping("/notification/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> deleteNotification(@PathVariable Long id, HttpSession session) {
+        if (!isAdmin(session)) {
+            return unauthorizedResponse();
+        }
+        
+        try {
+            notificationService.deleteNotification(id);
+            Map<String, String> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "알림이 삭제되었습니다.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("status", "error");
+            response.put("message", "알림 삭제에 실패했습니다: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    // 알림 상세 조회
+    @GetMapping("/notification/{id}")
+    @ResponseBody
+    public ResponseEntity<Notification> getNotification(@PathVariable Long id, HttpSession session) {
+        if (!isAdmin(session)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+        
+        try {
+            Notification notification = notificationService.getNotificationById(id);
+            if (notification != null) {
+                return ResponseEntity.ok(notification);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 }
