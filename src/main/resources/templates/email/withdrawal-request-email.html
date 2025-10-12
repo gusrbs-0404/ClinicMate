@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>탈퇴 신청 접수</title>
+    <link rel="stylesheet" th:href="@{/style/email.css}">
+</head>
+<body class="email-body">
+    <div class="email-container">
+        <div class="email-header withdrawal-request-header">
+            <div class="email-logo withdrawal-request-logo" th:text="${serviceName}">ClinicMate</div>
+            <div>병원 예약 관리 시스템</div>
+        </div>
+        
+        <div class="notice-message">
+            안녕하세요, <strong th:text="${userName}">사용자</strong>님! 📧
+        </div>
+        
+        <div class="email-content">
+            <p><strong>탈퇴 신청이 정상적으로 접수되었습니다.</strong></p>
+            
+            <div class="info-box">
+                <h3>📋 접수 정보</h3>
+                <p>• 신청자: <span th:text="${userName}">사용자</span>님</p>
+                <p>• 접수일시: <span th:text="${#dates.format(#dates.createNow(), 'yyyy년 MM월 dd일 HH:mm')}">2025년 01월 01일 12:00</span></p>
+                <p>• 처리상태: <strong>검토 중</strong></p>
+            </div>
+            
+            <div class="process-steps">
+                <h3>🔄 처리 과정</h3>
+                <ol>
+                    <li><strong>신청 접수</strong> - 탈퇴 신청이 접수되었습니다 (완료)</li>
+                    <li><strong>관리자 검토</strong> - 관리자가 신청 내용을 검토합니다</li>
+                    <li><strong>탈퇴 처리</strong> - 승인 시 계정이 삭제됩니다</li>
+                    <li><strong>완료 통지</strong> - 처리 완료 이메일을 발송합니다</li>
+                </ol>
+            </div>
+            
+            <p><strong>처리 기간:</strong> 영업일 기준 1-2일 소요됩니다.</p>
+            <p>처리 완료 시 별도로 이메일을 발송해드리겠습니다.</p>
+        </div>
+        
+        <div class="email-footer">
+            <p>이 이메일은 자동으로 발송되었습니다.</p>
+            <p>© 2025 ClinicMate. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

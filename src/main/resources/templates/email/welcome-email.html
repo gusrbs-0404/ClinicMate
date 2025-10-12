@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입 환영</title>
+    <link rel="stylesheet" th:href="@{/style/email.css}">
+</head>
+<body class="email-body">
+    <div class="email-container">
+        <div class="email-header welcome-header">
+            <div class="email-logo welcome-logo" th:text="${serviceName}">ClinicMate</div>
+            <div>병원 예약 관리 시스템</div>
+        </div>
+        
+        <div class="welcome-message">
+            안녕하세요, <strong th:text="${userName}">사용자</strong>님! 🎉
+        </div>
+        
+        <div class="email-content">
+            <p><strong th:text="${serviceName}">ClinicMate</strong>에 회원가입해주셔서 감사합니다!</p>
+            
+            <p>이제 다음과 같은 서비스를 이용하실 수 있습니다:</p>
+            
+            <div class="feature-list">
+                <h3>주요 기능</h3>
+                <ul>
+                    <li>🏥 병원 및 진료과 검색</li>
+                    <li>👨‍⚕️ 의사 정보 조회</li>
+                    <li>📅 온라인 예약 신청</li>
+                    <li>💳 간편한 결제 시스템</li>
+                    <li>📱 실시간 예약 현황 확인</li>
+                </ul>
+            </div>
+            
+            <p>언제든지 궁금한 점이 있으시면 고객센터로 문의해주세요.</p>
+            
+            <div style="text-align: center;">
+                <a href="http://localhost:8080" class="email-button">서비스 이용하기</a>
+            </div>
+        </div>
+        
+        <div class="email-footer">
+            <p>이 이메일은 자동으로 발송되었습니다.</p>
+            <p>© 2025 ClinicMate. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

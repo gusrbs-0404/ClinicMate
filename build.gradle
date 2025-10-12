@@ -37,10 +37,11 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
 	// MySQL 드라이버 (Boot BOM 관리, 그룹 변경)
-	implementation group: 'com.mysql', name: 'mysql-connector-j', version: '8.0.33'
+    implementation group: 'com.mysql', name: 'mysql-connector-j', version: '8.0.33'
 
 	// 메일/Security (버전은 Spring Boot BOM에 위임)
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
+	// implementation 'org.springframework.boot:spring-boot-starter-thymeleaf' // JSP 사용으로 주석 처리
     implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.5'
     implementation group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.5'
     implementation group: 'io.jsonwebtoken', name: 'jjwt-orgjson', version: '0.11.5'
@@ -48,7 +49,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 
     implementation group: 'eu.agno3.jcifs', name: 'jcifs-ng', version: '2.1.10'
-
 
 }
 
@@ -59,3 +59,4 @@ bootWar {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
