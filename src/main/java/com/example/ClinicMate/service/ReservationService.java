@@ -4,6 +4,8 @@ import com.example.ClinicMate.entity.*;
 import com.example.ClinicMate.repository.ReservationRepository;
 import com.example.ClinicMate.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +21,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class ReservationService {
     
     private final ReservationRepository reservationRepository;
@@ -27,6 +30,10 @@ public class ReservationService {
     private final HospitalService hospitalService;
     private final DoctorService doctorService;
     private final DepartmentService departmentService;
+    private final MailService mailService;
+    
+    @Value("${admin.email}")
+    private String adminEmail;
     
     // 예약 생성
     public Reservation createReservation(Long userId, Long hospitalId, Long doctorId, 
@@ -55,7 +62,31 @@ public class ReservationService {
                 .status(Reservation.ReservationStatus.예약중)
                 .build();
         
-        return reservationRepository.save(reservation);
+        Reservation savedReservation = reservationRepository.save(reservation);
+        
+        // 예약 완료 이메일 발송
+        try {
+            String reservationDate = resDate.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String reservationTime = resDate.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+            
+            mailService.sendReservationConfirmationEmail(
+                user.getEmail(),
+                user.getName(),
+                hospital.getHospitalName(),
+                department.getDeptName(),
+                doctor.getName(),
+                reservationDate,
+                reservationTime,
+                user.getUserId(),
+                savedReservation.getResId()
+            );
+            log.info("예약 완료 이메일 발송 성공: {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("예약 완료 이메일 발송 실패: {}", e.getMessage());
+            // 이메일 발송 실패해도 예약은 성공으로 처리
+        }
+        
+        return savedReservation;
     }
     
     // 예약 조회
@@ -85,6 +116,52 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findById(resId)
                 .orElseThrow(() -> new RuntimeException("예약을 찾을 수 없습니다."));
         
+        // 결제가 완료된 상태라면 결제 관련 이메일들을 먼저 발송
+        if (reservation.getPayment() != null && reservation.getPayment().getStatus() == Payment.PaymentStatus.완료) {
+            Payment payment = reservation.getPayment();
+            String refundAmount = payment.getAmount().toString(); // 환불 금액 (전액 환불)
+            
+            // 1. 결제 취소 이메일 발송 (사용자에게)
+            try {
+                mailService.sendPaymentCancellationEmail(
+                    reservation.getUser().getEmail(),
+                    reservation.getUser().getName(),
+                    reservation.getHospital().getHospitalName(),
+                    payment.getAmount().toString(),
+                    refundAmount,
+                    reservation.getUser().getUserId(),
+                    payment.getPayId(),
+                    reservation.getResId()
+                );
+                log.info("결제 취소 이메일 발송 성공: {}", reservation.getUser().getEmail());
+            } catch (Exception e) {
+                log.error("결제 취소 이메일 발송 실패: {}", e.getMessage());
+                // 이메일 발송 실패해도 예약 취소는 성공으로 처리
+            }
+            
+            // 2. 관리자에게 결제 취소 알림 이메일 발송
+            try {
+                mailService.sendPaymentCancellationNotificationToAdmin(
+                    adminEmail,
+                    reservation.getUser().getName(),
+                    reservation.getUser().getEmail(),
+                    reservation.getHospital().getHospitalName(),
+                    payment.getAmount().toString(),
+                    refundAmount,
+                    reservation.getUser().getUserId(),
+                    payment.getPayId(),
+                    reservation.getResId()
+                );
+                log.info("관리자 결제 취소 알림 이메일 발송 성공: {}", adminEmail);
+            } catch (Exception e) {
+                log.error("관리자 결제 취소 알림 이메일 발송 실패: {}", e.getMessage());
+                // 이메일 발송 실패해도 예약 취소는 성공으로 처리
+            }
+        } else {
+            log.info("결제 관련 이메일 발송 건너뜀 - 결제 상태: {}", 
+                reservation.getPayment() != null ? reservation.getPayment().getStatus() : "결제 없음");
+        }
+        
         // 예약 상태를 취소로 변경
         reservation.setStatus(Reservation.ReservationStatus.취소);
         reservation = reservationRepository.save(reservation);
@@ -94,6 +171,47 @@ public class ReservationService {
             Payment payment = reservation.getPayment();
             payment.setStatus(Payment.PaymentStatus.취소);
             paymentRepository.save(payment);
+        }
+        
+        // 3. 예약 취소 이메일 발송 (사용자에게)
+        try {
+            String reservationDate = reservation.getResDate().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            
+            mailService.sendReservationCancellationEmail(
+                reservation.getUser().getEmail(),
+                reservation.getUser().getName(),
+                reservation.getHospital().getHospitalName(),
+                reservation.getDepartment().getDeptName(),
+                reservation.getDoctor().getName(),
+                reservationDate,
+                reservation.getUser().getUserId(),
+                reservation.getResId()
+            );
+            log.info("예약 취소 이메일 발송 성공: {}", reservation.getUser().getEmail());
+        } catch (Exception e) {
+            log.error("예약 취소 이메일 발송 실패: {}", e.getMessage());
+            // 이메일 발송 실패해도 예약 취소는 성공으로 처리
+        }
+        
+        // 4. 관리자에게 예약 취소 알림 이메일 발송
+        try {
+            String reservationDate = reservation.getResDate().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            
+            mailService.sendReservationCancellationNotificationToAdmin(
+                adminEmail,
+                reservation.getUser().getName(),
+                reservation.getUser().getEmail(),
+                reservation.getHospital().getHospitalName(),
+                reservation.getDepartment().getDeptName(),
+                reservation.getDoctor().getName(),
+                reservationDate,
+                reservation.getUser().getUserId(),
+                reservation.getResId()
+            );
+            log.info("관리자 예약 취소 알림 이메일 발송 성공: {}", adminEmail);
+        } catch (Exception e) {
+            log.error("관리자 예약 취소 알림 이메일 발송 실패: {}", e.getMessage());
+            // 이메일 발송 실패해도 예약 취소는 성공으로 처리
         }
         
         return reservation;

@@ -16,6 +16,7 @@ import com.example.ClinicMate.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +25,10 @@ import lombok.extern.slf4j.Slf4j;
 public class UserService {
     
     private final UserRepository userRepository;
+    private final MailService mailService;
+    
+    @Value("${admin.email}")
+    private String adminEmail;
     
     // 회원가입
     @Transactional
@@ -51,7 +56,18 @@ public class UserService {
             user.setWithdrawalStatus(User.WithdrawalStatus.ACTIVE);
         }
         
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        
+        // 회원가입 환영 이메일 발송
+        try {
+            mailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getName(), savedUser.getUserId());
+            log.info("회원가입 환영 이메일 발송 성공: {}", savedUser.getEmail());
+        } catch (Exception e) {
+            log.error("회원가입 환영 이메일 발송 실패: {}", e.getMessage());
+            // 이메일 발송 실패해도 회원가입은 성공으로 처리
+        }
+        
+        return savedUser;
     }
     
     // 로그인
@@ -160,7 +176,33 @@ public class UserService {
         }
         
         user.setWithdrawalStatus(User.WithdrawalStatus.WITHDRAWAL_REQUESTED);
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        
+        // 탈퇴 신청 확인 이메일 발송 (사용자에게)
+        try {
+            mailService.sendWithdrawalRequestEmail(savedUser.getEmail(), savedUser.getName(), savedUser.getUserId());
+            log.info("탈퇴 신청 확인 이메일 발송 성공: {}", savedUser.getEmail());
+        } catch (Exception e) {
+            log.error("탈퇴 신청 확인 이메일 발송 실패: {}", e.getMessage());
+            // 이메일 발송 실패해도 탈퇴 신청은 성공으로 처리
+        }
+        
+        // 관리자에게 탈퇴 신청 알림 이메일 발송
+        try {
+            mailService.sendWithdrawalRequestNotificationToAdmin(
+                adminEmail, 
+                savedUser.getName(), 
+                savedUser.getEmail(), 
+                savedUser.getPhone(),
+                savedUser.getUserId()
+            );
+            log.info("관리자 탈퇴 신청 알림 이메일 발송 성공: {}", adminEmail);
+        } catch (Exception e) {
+            log.error("관리자 탈퇴 신청 알림 이메일 발송 실패: {}", e.getMessage());
+            // 이메일 발송 실패해도 탈퇴 신청은 성공으로 처리
+        }
+        
+        return savedUser;
     }
     
     // 탈퇴 승인 (관리자용)
@@ -171,6 +213,15 @@ public class UserService {
         
         if (user.getWithdrawalStatus() != User.WithdrawalStatus.WITHDRAWAL_REQUESTED) {
             throw new RuntimeException("탈퇴 요청이 없는 사용자입니다.");
+        }
+        
+        // 탈퇴 승인 완료 이메일 발송 (삭제 전에 발송)
+        try {
+            mailService.sendWithdrawalApprovalEmail(user.getEmail(), user.getName(), user.getUserId());
+            log.info("탈퇴 승인 완료 이메일 발송 성공: {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("탈퇴 승인 완료 이메일 발송 실패: {}", e.getMessage());
+            // 이메일 발송 실패해도 탈퇴 승인은 진행
         }
         
         userRepository.delete(user);
@@ -187,7 +238,32 @@ public class UserService {
         }
         
         user.setWithdrawalStatus(User.WithdrawalStatus.ACTIVE);
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        
+        // 탈퇴 취소 이메일 발송 (사용자에게)
+        try {
+            mailService.sendWithdrawalCancellationEmail(savedUser.getEmail(), savedUser.getName(), savedUser.getUserId());
+            log.info("탈퇴 취소 이메일 발송 성공: {}", savedUser.getEmail());
+        } catch (Exception e) {
+            log.error("탈퇴 취소 이메일 발송 실패: {}", e.getMessage());
+            // 이메일 발송 실패해도 탈퇴 취소는 성공으로 처리
+        }
+        
+        // 관리자에게 탈퇴 취소 알림 이메일 발송
+        try {
+            mailService.sendWithdrawalCancellationNotificationToAdmin(
+                adminEmail,
+                savedUser.getName(),
+                savedUser.getEmail(),
+                savedUser.getUserId()
+            );
+            log.info("관리자 탈퇴 취소 알림 이메일 발송 성공: {}", adminEmail);
+        } catch (Exception e) {
+            log.error("관리자 탈퇴 취소 알림 이메일 발송 실패: {}", e.getMessage());
+            // 이메일 발송 실패해도 탈퇴 취소는 성공으로 처리
+        }
+        
+        return savedUser;
     }
     
     // 탈퇴 요청된 사용자 목록 조회 (관리자용)
