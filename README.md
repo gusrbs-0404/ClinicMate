@@ -4,6 +4,7 @@
 ## 🔗 목차
 - [프로젝트 소개](#-프로젝트-소개)
 - [기술 스택](#-기술-스택)
+- [문서 관리](#-문서-관리)
 - [주요 기능](#-주요-기능)
 - [API 개요](#-api-개요)
 - [DB 설계](#-db-설계)
@@ -30,6 +31,15 @@ ClinicMate는 환자·관리자 모두를 위한 병원 운영 통합 플랫폼�
 - Infra/Build: Gradle, Embedded Tomcat
 - Mail: Gmail SMTP(App Password)
 - 기타: Pagination(Spring Data Page), RESTful API
+
+---
+
+## 📁 문서 관리
+
+- [요구사항 정의서](https://docs.google.com/spreadsheets/d/1kL7PHTHXrzrFsVtXJqbQyZNUQL9rdYtF/edit?usp=drive_link&ouid=116757251093669453414&rtpof=true&sd=true)
+-[화면 설계서](https://drive.google.com/file/d/1IIRIpnzKCuaUoaKg-2w1muwyaGt3ZXpv/view?usp=drive_link)
+-[테이블 정의서](https://docs.google.com/spreadsheets/d/18qbMQSDvZel3Lrd6NjtywcrZTsmCd8zT/edit?usp=drive_link&ouid=116757251093669453414&rtpof=true&sd=true)
+-[인터페이스 정의서](https://docs.google.com/spreadsheets/d/1xDM_t8dhPnV4JfD_cZgvNtg1R8iucEVE/edit?usp=drive_link&ouid=116757251093669453414&rtpof=true&sd=true)
 
 ---
 
