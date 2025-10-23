@@ -50,12 +50,12 @@ ClinicMate는 환자·관리자 모두를 위한 병원 운영 통합 플랫폼�
 - ![회원가입](https://github.com/user-attachments/assets/20817845-f1ed-4821-928c-d6045c11425c)
 
 - 로그인, 마이페이지, 정보수정
-- ![로그인_-마이페이지_-정보수정](https://github.com/user-attachments/assets/c0ddc98c-8f8d-4e18-9034-073a1e6771dc)
+![로그인_-마이페이지_-정보수정](https://github.com/user-attachments/assets/c0ddc98c-8f8d-4e18-9034-073a1e6771dc)
 
 - 탈퇴 요청 → 관리자 승인 → 탈퇴 완료(2단계)
 - 관리자/일반회원 권한 분리
-- ![탈퇴신청](https://github.com/user-attachments/assets/4384f065-b44d-41b6-b78d-41efb0d46670)
-- ![탈퇴승인](https://github.com/user-attachments/assets/161f58de-116d-4cef-ad19-9d99a964d6d7)
+![탈퇴신청](https://github.com/user-attachments/assets/4384f065-b44d-41b6-b78d-41efb0d46670)
+![탈퇴승인](https://github.com/user-attachments/assets/161f58de-116d-4cef-ad19-9d99a964d6d7)
 
 
 
@@ -66,56 +66,56 @@ ClinicMate는 환자·관리자 모두를 위한 병원 운영 통합 플랫폼�
 - 결제 진행(카드/현금) → 상태: 대기 → 완료/취소
 - 이메일 알림 발송(예약완료/결제완료/취소 시 사용자·관리자)
 - 마이페이지에서 예약·결제 내역 확인 및 취소
-- ![예약](https://github.com/user-attachments/assets/36f57f7f-966f-4f00-bd69-c0a9fc55a6f3)
-- ![예약취소](https://github.com/user-attachments/assets/dac730e7-f944-4708-80cd-6defdbcbdca9)
+![예약](https://github.com/user-attachments/assets/36f57f7f-966f-4f00-bd69-c0a9fc55a6f3)
+![예약취소](https://github.com/user-attachments/assets/dac730e7-f944-4708-80cd-6defdbcbdca9)
 
    
 ### 3) 병원/진료과/의사 관리
 - 병원 등록/수정/삭제, 전화번호 자동 포맷팅
-- ![병원등록](https://github.com/user-attachments/assets/3d645434-7c1d-4aa2-9a5b-666fa06c7703)
+![병원등록](https://github.com/user-attachments/assets/3d645434-7c1d-4aa2-9a5b-666fa06c7703)
 
 - 진료과 등록/수정/삭제
-- ![진료과등록](https://github.com/user-attachments/assets/1fca8b8e-f9e2-4999-977c-7efb8c043541)
+![진료과등록](https://github.com/user-attachments/assets/1fca8b8e-f9e2-4999-977c-7efb8c043541)
 
 - 의사 관리 및 스케줄 연계
-- ![의사추가](https://github.com/user-attachments/assets/525e465f-2109-44f7-be8f-0a66e02db5ac)
+![의사추가](https://github.com/user-attachments/assets/525e465f-2109-44f7-be8f-0a66e02db5ac)
 
 
 ### 4) 예약 관리
 - 의사별 스케줄 조회, 가능한/예약된 시간 표시
 - 관리자 대리 예약(환자 모달에서 선택)
-- ![예약관리](https://github.com/user-attachments/assets/1afd9f83-75f1-4100-9bf6-dc477a545517)
+![예약관리](https://github.com/user-attachments/assets/1afd9f83-75f1-4100-9bf6-dc477a545517)
 
 
 ### 5) 결제 관리
 - 결제 완료/취소 처리
 - 취소 시 사용자/관리자 각각에 이메일 알림
 - 통계에서 “완료된 결제 금액만” 집계
-- ![결제관리](https://github.com/user-attachments/assets/45239ba9-ce79-48f9-8301-70c4e52bfd5d)
+![결제관리](https://github.com/user-attachments/assets/45239ba9-ce79-48f9-8301-70c4e52bfd5d)
 
 
 ### 6) 통계 관리
 - 월별/일별 예약 현황, 진료과별 예약 건수
 - 결제 요약(총액=완료 금액), 완료/대기/취소 건수
 - “전체 병원/특정 병원” 필터링
-- ![통계관리](https://github.com/user-attachments/assets/41c2391d-cc67-4279-bce1-bc3632ec8d8a)
+![통계관리](https://github.com/user-attachments/assets/41c2391d-cc67-4279-bce1-bc3632ec8d8a)
 
 
 ### 7) 알림 관리
 - 이메일 알림 12종(회원/관리자)
 - 발송 성공/실패 로그 및 재발송
 - 실패만 보기/삭제/상세 조회, 페이징
-- ![알림관리](https://github.com/user-attachments/assets/cfaf873d-b18d-4594-ae81-91ccc6898702)
+![알림관리](https://github.com/user-attachments/assets/cfaf873d-b18d-4594-ae81-91ccc6898702)
 
 
 ### 8) 이메일
 - 유저 이메일 발송
 - 회원가입, 예약완료, 예약취소, 결제완료, 결제취소, 탈퇴신청, 탈퇴추소
-- ![유저 이메일](https://github.com/user-attachments/assets/aa0cb073-be8c-4a4b-8089-6bad5171d205)
+![유저 이메일](https://github.com/user-attachments/assets/aa0cb073-be8c-4a4b-8089-6bad5171d205)
 
 - 관리자 이메일 발송
 - 예약취소, 결제취소, 탈퇴신청, 탈퇴취소
-- ![관리자 이메일](https://github.com/user-attachments/assets/532a217f-73a4-4ad5-a174-1201921e5ed4)
+![관리자 이메일](https://github.com/user-attachments/assets/532a217f-73a4-4ad5-a174-1201921e5ed4)
 
 ---
 
