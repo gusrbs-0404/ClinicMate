@@ -37,9 +37,9 @@ ClinicMate는 환자·관리자 모두를 위한 병원 운영 통합 플랫폼�
 ## 📁 문서 관리
 
 - [요구사항 정의서](https://docs.google.com/spreadsheets/d/1kL7PHTHXrzrFsVtXJqbQyZNUQL9rdYtF/edit?usp=drive_link&ouid=116757251093669453414&rtpof=true&sd=true)
--[화면 설계서](https://drive.google.com/file/d/1IIRIpnzKCuaUoaKg-2w1muwyaGt3ZXpv/view?usp=drive_link)
--[테이블 정의서](https://docs.google.com/spreadsheets/d/18qbMQSDvZel3Lrd6NjtywcrZTsmCd8zT/edit?usp=drive_link&ouid=116757251093669453414&rtpof=true&sd=true)
--[인터페이스 정의서](https://docs.google.com/spreadsheets/d/1xDM_t8dhPnV4JfD_cZgvNtg1R8iucEVE/edit?usp=drive_link&ouid=116757251093669453414&rtpof=true&sd=true)
+- [화면 설계서](https://drive.google.com/file/d/1IIRIpnzKCuaUoaKg-2w1muwyaGt3ZXpv/view?usp=drive_link)
+- [테이블 정의서](https://docs.google.com/spreadsheets/d/18qbMQSDvZel3Lrd6NjtywcrZTsmCd8zT/edit?usp=drive_link&ouid=116757251093669453414&rtpof=true&sd=true)
+- [인터페이스 정의서](https://docs.google.com/spreadsheets/d/1xDM_t8dhPnV4JfD_cZgvNtg1R8iucEVE/edit?usp=drive_link&ouid=116757251093669453414&rtpof=true&sd=true)
 
 ---
 
@@ -47,7 +47,7 @@ ClinicMate는 환자·관리자 모두를 위한 병원 운영 통합 플랫폼�
 
 ### 1) 회원/권한 관리
 - 회원가입
-- ![회원가입](https://github.com/user-attachments/assets/20817845-f1ed-4821-928c-d6045c11425c)
+![회원가입](https://github.com/user-attachments/assets/20817845-f1ed-4821-928c-d6045c11425c)
 
 - 로그인, 마이페이지, 정보수정
 ![로그인_-마이페이지_-정보수정](https://github.com/user-attachments/assets/c0ddc98c-8f8d-4e18-9034-073a1e6771dc)
