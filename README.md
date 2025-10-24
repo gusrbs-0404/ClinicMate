@@ -164,6 +164,70 @@ ClinicMate는 환자·관리자 모두를 위한 병원 운영 통합 플랫폼�
 
 이번 ClinicMate 프로젝트는 AI 도구를 적극 활용하여 설계부터 완성까지 진행했습니다. 14일이라는 짧은 기간에 완성할 수 있었지만, 다음번에는 더 집중하여 7일 이내로 개인 프로젝트를 완성하는 것이 목표입니다.
 
-AI 도구의 영향력을 직접 체감했습니다. 혼자 진행했다면 한 달 정도 걸렸을 프로젝트를 절반의 시간으로 단축할 수 있었습니다. 아직 AI에게 어떤 질문을 해야 더 양질의 답변을 받을지 완전히 정리되지 않았지만, 이런 단기 프로젝트를 반복하며 AI 도구 활용법을 체계화해 나가겠습니다.
+AI 도구의 영향력을 직접 체감했습니다. 혼자 진행했다면 한 달 정도 걸렸을 프로젝트를 절반의 시간으로 단축할 수 있었습니다. 아직 AI에게 어떤 질문을 해야 더 양질의 답변을 받는방법과 작성해준 코드를 보고 패턴, 에러, 기능등 단순히 작동만 하게 작성해주는 경우가 많았지만 아직 어떻게 수정해 나가야할지 잘모 이메일 알림 12종(회원/관리자)
+- 발송 성공/실패 로그 및 재발송
+- 실패만 보기/삭제/상세 조회, 페이징
+![알림관리](https://github.com/user-attachments/assets/cfaf873d-b18d-4594-ae81-91ccc6898702)
 
-앞으로는 AI 도구를 더욱 효과적으로 활용하여 개발 생산성을 극대화하고, 빠른 프로토타이핑과 학습을 통해 개발자로서의 역량을 지속적으로 성장시키고 싶습니다.
+
+### 8) 이메일
+- 유저 이메일 발송
+- 회원가입, 예약완료, 예약취소, 결제완료, 결제취소, 탈퇴신청, 탈퇴추소
+![유저 이메일](https://github.com/user-attachments/assets/aa0cb073-be8c-4a4b-8089-6bad5171d205)
+
+- 관리자 이메일 발송
+- 예약취소, 결제취소, 탈퇴신청, 탈퇴취소
+![관리자 이메일](https://github.com/user-attachments/assets/532a217f-73a4-4ad5-a174-1201921e5ed4)
+
+---
+
+## 🖥 화면 구성
+- 메인: `/main` → `main/main.jsp`
+- 예약: `/reservation` → `reservation/reservation.jsp`
+- 로그인: `/users/signin` → `user/signin.jsp`
+- 회원가입: `/users/signup` → `user/signup.jsp`
+- 마이페이지: `/users/me` → `user/mypage.jsp`
+- 정보 수정: `/users/edit-profile` → `user/edit-profile.jsp`
+- 탈퇴 요청: `/users/withdraw` → `user/withdraw.jsp`
+- 관리자: `/admin` → `admin/admin.jsp`
+
+---
+
+## 📡 API 개요
+- Admin
+  - GET `/admin/users`, `/admin/hospitals`, `/admin/departments`, `/admin/doctors` … (모두 페이징)
+  - GET `/admin/reservations`, `/admin/payments` (병원 필터링 + 페이징)
+  - GET `/admin/statistics/monthly|daily|department|payment` (hospitalId 옵션)
+  - GET `/admin/notifications` (페이징), `/admin/notifications/all`, `/admin/notifications/{id}`
+  - POST/PUT/DELETE: 병원/진료과/의사/유저/예약/결제 관리 일체
+
+- Reservation
+  - GET `/reservation` (뷰)
+  - GET `/reservation/api/booked-times?doctorId=&date=`
+
+- User
+  - GET `/users/signup|signin|me|edit-profile|withdraw` (뷰)
+
+상세 스펙은 `src/main/java/.../controller`에 정리되어 있습니다.
+
+---
+
+## 🗂 DB 설계
+- 핵심 엔터티: USER, HOSPITAL, DEPARTMENT, DOCTOR, RESERVATION, PAYMENT, NOTIFICATION
+- 예약↔결제: 1:1, 예약↔알림/결제↔알림: 1:N
+- 통계 쿼리: 월/일/진료과/결제 집계 + 병원 필터
+- 전화번호/중복 검증/정합성 보장
+- 스키마: `database_setup.sql` 참조
+
+---
+
+## 💭프로젝트 후기
+### 프로젝트 후기
+
+ClinicMate 프로젝트를 14일이라는 단기간 내에 성공적으로 완료했습니다. 이는 AI 도구를 설계부터 완성까지 적극적으로 활용한 결과입니다. 혼자 진행했다면 최소 한 달 이상 소요되었을 프로젝트를 절반의 시간으로 단축하며, AI 도구의 막대한 영향력과 생산성 향상 잠재력을 직접 체감할 수 있었습니다.
+
+다음 개인 프로젝트는 7일 이내 완성을 목표로, 더욱 집중적인 개발을 계획하고 있습니다.
+현재 AI 도구가 작성해 준 코드를 검토할 때, 단순히 '작동'하는 수준을 넘어 코드의 패턴, 잠재적 에러, 기능적 결함 등을 신속하게 파악하고 수정하는 능력은 아직 부족합니다. AI에게 '어떤 질문을 해야' 양질의 답변과 코드를 얻을 수 있는지에 대한 체계적인 접근법도 지속적으로 모색해야 합니다.
+
+이러한 단기 프로젝트 반복을 통해 AI 도구 활용법을 체계화해 나갈 것입니다.
+궁극적으로는 AI 도구를 더욱 효과적으로 활용하여 개발 생산성을 극대화하고, AI가 생성한 코드의 오류나 비효율적인 부분을 정확하게 캐치하고 수정할 수 있는 역량을 갖춘 개발자로 지속 성장하고자 합니다.
